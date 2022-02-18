@@ -3,4 +3,3 @@ black
 hacking
 pre-commit
 tensorboard
-yarr @ git+https://github.com/stepjam/YARR.git@main
