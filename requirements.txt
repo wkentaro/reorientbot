@@ -1,6 +1,6 @@
 -e git+https://github.com/wkentaro/bullet3.git@addUserDebugPoints#egg=pybullet
--e git+https://github.com/wkentaro/scikit-robot.git@mercury#egg=scikit-robot
--e git+https://github.com/wkentaro/pybullet_planning.git@safepicking#egg=pybullet_planning
+-e git+https://github.com/wkentaro/scikit-robot.git@max_pos_accel#egg=scikit-robot
+-e git+https://github.com/wkentaro/pybullet_planning.git@collision_flag#egg=pybullet_planning
 gym
 imgviz
 loguru
