@@ -16,4 +16,4 @@ set -x
 
 cd $CATKIN_WS
 
-catkin build mercury_ros
+catkin build reorientbot_ros

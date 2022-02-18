@@ -9,8 +9,8 @@ import numpy as np
 import pybullet as p
 import pybullet_planning as pp
 
-import mercury
-from mercury.examples.reorientation import _env
+import reorientbot
+from reorientbot.examples.reorientation import _env
 
 import actionlib
 from actionlib_msgs.msg import GoalStatus
@@ -86,18 +86,20 @@ class BaseTaskInterface:
         except tf.ExtrapolationException:
             return
 
-        pcd = mercury.geometry.pointcloud_from_depth(
+        pcd = reorientbot.geometry.pointcloud_from_depth(
             depth, fx=K[0, 0], fy=K[1, 1], cx=K[0, 2], cy=K[1, 2]
         )
-        pcd = mercury.geometry.transform_points(
-            pcd, mercury.geometry.transformation_matrix(*camera_to_base)
+        pcd = reorientbot.geometry.transform_points(
+            pcd, reorientbot.geometry.transformation_matrix(*camera_to_base)
         )
 
         height = int(round(rgb.shape[0] * np.sqrt(self._sub_points_density)))
         rgb = imgviz.resize(rgb, height=height)
         pcd = imgviz.resize(pcd, height=height)
 
-        sub_points_pybullet_id = mercury.pybullet.draw_points(pcd, rgb, size=1)
+        sub_points_pybullet_id = reorientbot.pybullet.draw_points(
+            pcd, rgb, size=1
+        )
 
         if self._sub_points_pybullet_id is not None:
             pp.remove_debug(self._sub_points_pybullet_id)
@@ -224,8 +226,8 @@ class BaseTaskInterface:
         self.movejs([self._env.pi.homej], *args, **kwargs)
 
     def _solve_ik_for_look_at(self, eye, target, rotation_axis=True):
-        c = mercury.geometry.Coordinate.from_matrix(
-            mercury.geometry.look_at(eye, target)
+        c = reorientbot.geometry.Coordinate.from_matrix(
+            reorientbot.geometry.look_at(eye, target)
         )
         if rotation_axis is True:
             for _ in range(4):
@@ -285,7 +287,7 @@ class BaseTaskInterface:
 
         self._workspace_initialized = True
 
-        # mercury.pybullet.annotate_pose(obj)
+        # reorientbot.pybullet.annotate_pose(obj)
 
 
 def main():

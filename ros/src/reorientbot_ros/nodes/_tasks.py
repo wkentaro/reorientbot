@@ -1,15 +1,15 @@
 import pybullet_planning as pp
 import trimesh
 
-import mercury
+import reorientbot
 
-from mercury.examples.reorientation import _utils
+from reorientbot.examples.reorientation import _utils
 
 
 def set_obj_goal(self, obj_goal):
     self._obj_goal = obj_goal
     self._env.PLACE_POSE = pp.get_pose(self._obj_goal)
-    c = mercury.geometry.Coordinate(*self._env.PLACE_POSE)
+    c = reorientbot.geometry.Coordinate(*self._env.PLACE_POSE)
     c.translate([0, 0, 0.2], wrt="world")
     self._env.PRE_PLACE_POSE = c.pose
     # highlight target pose
@@ -18,14 +18,14 @@ def set_obj_goal(self, obj_goal):
     ].meshAssetFileName.decode()
     mesh = trimesh.load(visual_file)
     mesh.apply_transform(
-        mercury.geometry.transformation_matrix(*self._env.PLACE_POSE)
+        reorientbot.geometry.transformation_matrix(*self._env.PLACE_POSE)
     )
     pp.draw_aabb(mesh.bounds, color=(1, 0, 0, 1))
 
 
 def task_01(self):
     # bin
-    obj = mercury.pybullet.create_bin(
+    obj = reorientbot.pybullet.create_bin(
         X=0.3, Y=0.3, Z=0.11, color=(0.7, 0.7, 0.7, 1)
     )
     pp.set_pose(
@@ -38,8 +38,8 @@ def task_01(self):
     self._env.bg_objects.append(obj)
 
     # target place
-    obj = mercury.pybullet.create_mesh_body(
-        visual_file=mercury.datasets.ycb.get_visual_file(class_id=3),
+    obj = reorientbot.pybullet.create_mesh_body(
+        visual_file=reorientbot.datasets.ycb.get_visual_file(class_id=3),
         quaternion=_utils.get_canonical_quaternion(class_id=3),
         rgba_color=(1, 1, 1, 0.5),
         mesh_scale=(0.99, 0.99, 0.99),  # for virtual rendering
@@ -67,10 +67,10 @@ def task_02(self):
         self._subscriber_base.unsubscribe()
 
     # bin
-    obj = mercury.pybullet.create_bin(
+    obj = reorientbot.pybullet.create_bin(
         X=0.3, Y=0.3, Z=0.11, color=(0.7, 0.7, 0.7, 1)
     )
-    mercury.pybullet.set_pose(
+    reorientbot.pybullet.set_pose(
         obj,
         (
             (0.5105999999999966, -0.004099999999999998, 0.08820000000000094),
@@ -78,16 +78,16 @@ def task_02(self):
         ),
     )
     if 0:
-        mercury.pybullet.annotate_pose(obj)
+        reorientbot.pybullet.annotate_pose(obj)
     self._env.bg_objects.append(obj)
 
     parent = obj
 
     # cracker_box
-    obj = mercury.pybullet.create_mesh_body(
-        mercury.datasets.ycb.get_visual_file(class_id=2)
+    obj = reorientbot.pybullet.create_mesh_body(
+        reorientbot.datasets.ycb.get_visual_file(class_id=2)
     )
-    mercury.pybullet.set_pose(
+    reorientbot.pybullet.set_pose(
         obj,
         (
             (
@@ -106,8 +106,8 @@ def task_02(self):
     )
 
     # sugar_box
-    obj = mercury.pybullet.create_mesh_body(
-        mercury.datasets.ycb.get_visual_file(class_id=3)
+    obj = reorientbot.pybullet.create_mesh_body(
+        reorientbot.datasets.ycb.get_visual_file(class_id=3)
     )
     pp.set_pose(
         obj,
@@ -125,7 +125,7 @@ def task_02(self):
             ),
         ),
     )
-    mercury.pybullet.set_pose(
+    reorientbot.pybullet.set_pose(
         obj,
         (
             (
@@ -144,8 +144,8 @@ def task_02(self):
     )
 
     # mustard_bottle
-    obj = mercury.pybullet.create_mesh_body(
-        mercury.datasets.ycb.get_visual_file(class_id=5)
+    obj = reorientbot.pybullet.create_mesh_body(
+        reorientbot.datasets.ycb.get_visual_file(class_id=5)
     )
     pp.set_pose(
         obj,
@@ -159,7 +159,7 @@ def task_02(self):
             ),
         ),
     )
-    mercury.pybullet.set_pose(
+    reorientbot.pybullet.set_pose(
         obj,
         (
             (0.1017511785030365, -0.06474190950393677, -0.026600003242492676),
@@ -174,8 +174,8 @@ def task_02(self):
     )
 
     # tomato_can
-    obj = mercury.pybullet.create_mesh_body(
-        mercury.datasets.ycb.get_visual_file(class_id=4),
+    obj = reorientbot.pybullet.create_mesh_body(
+        reorientbot.datasets.ycb.get_visual_file(class_id=4),
         rgba_color=(1, 1, 1, 0.5),
         mesh_scale=(0.99, 0.99, 0.99),  # for virtual rendering
     )
@@ -191,7 +191,7 @@ def task_02(self):
             ),
         ),
     )
-    mercury.pybullet.set_pose(
+    reorientbot.pybullet.set_pose(
         obj,
         (
             (0.059504538774490356, 0.07194063067436218, -0.02120000123977661),

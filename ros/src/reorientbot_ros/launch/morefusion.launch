@@ -3,7 +3,7 @@
   <arg name="GUI" default="true" />
   <arg name="PROCESS" default="true" />
 
-  <include file="$(find mercury_ros)/launch/mask_rcnn_instance_segmentation.launch">
+  <include file="$(find reorientbot_ros)/launch/mask_rcnn_instance_segmentation.launch">
     <arg name="GUI" value="false" />
     <arg name="PROCESS" value="$(arg PROCESS)" />
   </include>
@@ -96,7 +96,7 @@
       </rosparam>
     </node>
     <node name="grids_to_centroids"
-          pkg="mercury_ros" type="voxel_grids_to_centroids.py"
+          pkg="reorientbot_ros" type="voxel_grids_to_centroids.py"
           clear_params="true">
       <remap from="~input" to="output/grids" />
     </node>
@@ -124,13 +124,13 @@
   </node>
 
   <node name="republish_tf_static_for_rosbag"
-        pkg="mercury_ros" type="republish_tf_static_for_rosbag.py"
+        pkg="reorientbot_ros" type="republish_tf_static_for_rosbag.py"
         clear_params="true" if="$(arg PROCESS)" />
 
   <group if="$(arg GUI)">
     <node name="rviz"
           pkg="rviz" type="rviz"
-          args="-d $(find mercury_ros)/rviz/morefusion.rviz"
+          args="-d $(find reorientbot_ros)/rviz/morefusion.rviz"
           clear_params="true">
     </node>
   </group>

@@ -22,13 +22,13 @@
     <link name="${ns}_suction_gripper">
       <visual>
         <geometry>
-          <mesh filename="package://mercury_ros/robots/drl/meshes/visual/suction_mount.obj"/>
+          <mesh filename="package://reorientbot_ros/robots/drl/meshes/visual/suction_mount.obj"/>
         </geometry>
         <material name="black"/>
       </visual>
       <collision>
         <geometry>
-          <mesh filename="package://mercury_ros/robots/drl/meshes/collision/suction_mount.obj"/>
+          <mesh filename="package://reorientbot_ros/robots/drl/meshes/collision/suction_mount.obj"/>
         </geometry>
       </collision>
     </link>

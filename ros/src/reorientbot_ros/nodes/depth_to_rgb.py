@@ -10,7 +10,7 @@ from sensor_msgs.msg import CameraInfo
 from sensor_msgs.msg import Image
 import topic_tools
 
-import mercury
+import reorientbot
 
 
 class DepthToNormalNode(topic_tools.LazyTransport):
@@ -50,10 +50,10 @@ class DepthToNormalNode(topic_tools.LazyTransport):
 
         if self._pub_normal.get_num_connections() > 0:
             K = np.array(cam_msg.K).reshape(3, 3)
-            points = mercury.geometry.pointcloud_from_depth(
+            points = reorientbot.geometry.pointcloud_from_depth(
                 depth, fx=K[0, 0], fy=K[1, 1], cx=K[0, 2], cy=K[1, 2]
             )
-            normal = mercury.geometry.normals_from_pointcloud(points)
+            normal = reorientbot.geometry.normals_from_pointcloud(points)
             normal = np.uint8((normal + 1) / 2 * 255)
             out_msg = bridge.cv2_to_imgmsg(normal, "rgb8")
             out_msg.header = cam_msg.header

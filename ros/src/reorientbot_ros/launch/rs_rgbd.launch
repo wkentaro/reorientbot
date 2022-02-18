@@ -30,7 +30,7 @@
   </group>
   <group ns="/camera/aligned_depth_to_color">
     <node name="depth_to_rgb"
-          pkg="mercury_ros" type="depth_to_rgb.py"
+          pkg="reorientbot_ros" type="depth_to_rgb.py"
           clear_params="true">
       <remap from="~input/camera_info" to="camera_info" />
       <remap from="~input/depth" to="image_raw" />
@@ -64,7 +64,7 @@
     </rosparam>
   </node>
   -->
-  <include file="$(find mercury_ros)/launch/eye_in_hand_camera_pose.launch">
+  <include file="$(find reorientbot_ros)/launch/eye_in_hand_camera_pose.launch">
   </include>
 
 </launch>

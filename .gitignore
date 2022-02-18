@@ -1,5 +1,5 @@
 /examples/**/logs/
-/ros/src/mercury_ros/nodes/logs/
+/ros/src/reorientbot_ros/nodes/logs/
 
 /src/
 
@@ -9,4 +9,4 @@
 /ros/logs/
 /ros/src/*
 !/ros/src/.rosinstall
-!/ros/src/mercury_ros/
+!/ros/src/reorientbot_ros/

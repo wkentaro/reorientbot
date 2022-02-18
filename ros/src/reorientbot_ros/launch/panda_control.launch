@@ -1,6 +1,6 @@
 <launch>
 
-  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find mercury_ros)/robots/panda_drl.urdf.xacro'" />
+  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find reorientbot_ros)/robots/panda_drl.urdf.xacro'" />
 
   <!-- controllers {{ -->
 
@@ -37,7 +37,7 @@
   <!-- }} controllers -->
 
   <node name="set_suction_server"
-        pkg="mercury_ros" type="set_suction_server.py"
+        pkg="reorientbot_ros" type="set_suction_server.py"
         output="screen" required="true" />
 
 </launch>

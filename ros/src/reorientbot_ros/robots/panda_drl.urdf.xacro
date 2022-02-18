@@ -3,7 +3,7 @@
 
   <xacro:include filename="$(find franka_description)/robots/panda_arm.urdf.xacro"/>
 
-  <xacro:include filename="$(find mercury_ros)/robots/drl/suction.xacro"/>
+  <xacro:include filename="$(find reorientbot_ros)/robots/drl/suction.xacro"/>
   <xacro:suction_gripper ns="panda" rpy="${pi} 0 ${-pi/4}" xyz="0 0 0.0065" connected_to="panda_link8"/>
 
 </robot>

@@ -56,7 +56,7 @@
     </node>
   </group>
 
-  <include file="$(find mercury_ros)/launch/setup.launch">
+  <include file="$(find reorientbot_ros)/launch/setup.launch">
     <arg name="PROCESS" value="false" />
   </include>
 

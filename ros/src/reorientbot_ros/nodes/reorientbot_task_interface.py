@@ -11,13 +11,13 @@ import numpy as np
 import path
 import pybullet_planning as pp
 
-import mercury
-from mercury.examples.reorientation import _reorient
-from mercury.examples.reorientation import _utils
-from mercury.examples.reorientation.pickable_eval import (
+import reorientbot
+from reorientbot.examples.reorientation import _reorient
+from reorientbot.examples.reorientation import _utils
+from reorientbot.examples.reorientation.pickable_eval import (
     get_goal_oriented_reorient_poses,  # NOQA
 )
-from mercury.examples.reorientation.reorient_dynamic import (
+from reorientbot.examples.reorientation.reorient_dynamic import (
     plan_dynamic_reorient,  # NOQA
 )
 
@@ -176,10 +176,12 @@ class ReorientbotTaskInterface:
             )
             obj_to_base = pp.multiply(camera_to_base, obj_to_camera)
 
-            visual_file = mercury.datasets.ycb.get_visual_file(class_id)
-            collision_file = mercury.pybullet.get_collision_file(visual_file)
+            visual_file = reorientbot.datasets.ycb.get_visual_file(class_id)
+            collision_file = reorientbot.pybullet.get_collision_file(
+                visual_file
+            )
             if self.base._env.fg_object_id is None:
-                obj = mercury.pybullet.create_mesh_body(
+                obj = reorientbot.pybullet.create_mesh_body(
                     visual_file=visual_file,
                     collision_file=collision_file,
                     position=obj_to_base[0],
@@ -212,10 +214,10 @@ class ReorientbotTaskInterface:
             with tempfile.TemporaryDirectory() as tmp_dir:
                 visual_file = path.Path(tmp_dir) / "tsdf.obj"
                 tsdf.export(visual_file)
-                collision_file = mercury.pybullet.get_collision_file(
+                collision_file = reorientbot.pybullet.get_collision_file(
                     visual_file, resolution=10000
                 )
-                bg_structure = mercury.pybullet.create_mesh_body(
+                bg_structure = reorientbot.pybullet.create_mesh_body(
                     visual_file=visual_file,
                     collision_file=collision_file,
                     rgba_color=(0.5, 0.5, 0.5, 1),
@@ -307,7 +309,7 @@ class ReorientbotTaskInterface:
 
         pcd_in_obj = pcd_in_obj[indices]
         normals_in_obj = normals_in_obj[indices]
-        quaternion_in_obj = mercury.geometry.quaternion_from_vec2vec(
+        quaternion_in_obj = reorientbot.geometry.quaternion_from_vec2vec(
             [0, 0, -1], normals_in_obj
         )
         grasp_poses = np.hstack([pcd_in_obj, quaternion_in_obj])  # in obj
@@ -352,7 +354,7 @@ class ReorientbotTaskInterface:
 
         with pp.WorldSaver():
             self.base._env.pi.setj(js[-1])
-            c = mercury.geometry.Coordinate(
+            c = reorientbot.geometry.Coordinate(
                 *self.base._env.pi.get_pose("tipLink")
             )
             js = []
@@ -548,8 +550,8 @@ class ReorientbotTaskInterface:
                 quaternion = [
                     getattr(pose_msg.orientation, key) for key in "xyzw"
                 ]
-                obj = mercury.pybullet.create_mesh_body(
-                    visual_file=mercury.datasets.ycb.get_visual_file(
+                obj = reorientbot.pybullet.create_mesh_body(
+                    visual_file=reorientbot.datasets.ycb.get_visual_file(
                         class_id=class_id
                     ),
                     collision_file=True,
@@ -606,7 +608,7 @@ class ReorientbotTaskInterface:
 
     def init_task(self):
         shelf1 = _utils.create_shelf(X=0.29, Y=0.41, Z=0.285, N=2)
-        mercury.pybullet.set_pose(
+        reorientbot.pybullet.set_pose(
             shelf1,
             (
                 (
@@ -619,7 +621,7 @@ class ReorientbotTaskInterface:
         )
 
         shelf2 = _utils.create_shelf(X=0.29, Y=0.41, Z=0.285, N=2)
-        mercury.pybullet.set_pose(
+        reorientbot.pybullet.set_pose(
             shelf2,
             (
                 (
@@ -634,20 +636,20 @@ class ReorientbotTaskInterface:
         color = (0.7, 0.7, 0.7, 1)
         create = None  # [0, 1, 2]
 
-        box1 = mercury.pybullet.create_bin(
+        box1 = reorientbot.pybullet.create_bin(
             X=0.3, Y=0.3, Z=0.11, color=color, create=create
         )
-        c = mercury.geometry.Coordinate()
+        c = reorientbot.geometry.Coordinate()
         c.rotate([np.deg2rad(9), 0, 0])
         c.rotate([0, 0, np.deg2rad(-110)], wrt="world")
         c.translate([0.85, -0.15, 0.09], wrt="world")
         pp.set_pose(box1, c.pose)
 
-        box2 = mercury.pybullet.create_bin(
+        box2 = reorientbot.pybullet.create_bin(
             X=0.3, Y=0.3, Z=0.11, color=color, create=create
         )
         box1_to_world = pp.get_pose(box1)
-        c = mercury.geometry.Coordinate()
+        c = reorientbot.geometry.Coordinate()
         c.translate([0.31, 0, 0])
         box2_to_box1 = c.pose
         box2_to_world = pp.multiply(box1_to_world, box2_to_box1)
@@ -664,12 +666,12 @@ class ReorientbotTaskInterface:
 
         # 1st
         class_id = 2
-        obj = mercury.pybullet.create_mesh_body(
-            visual_file=mercury.datasets.ycb.get_visual_file(class_id),
+        obj = reorientbot.pybullet.create_mesh_body(
+            visual_file=reorientbot.datasets.ycb.get_visual_file(class_id),
             rgba_color=(1, 1, 1, 0.5),
             mesh_scale=(0.99, 0.99, 0.99),
         )
-        c = mercury.geometry.Coordinate(
+        c = reorientbot.geometry.Coordinate(
             quaternion=_utils.get_canonical_quaternion(class_id)
         )
         c.rotate([0, 0, np.deg2rad(90)])
@@ -694,12 +696,12 @@ class ReorientbotTaskInterface:
 
         # 2nd
         class_id = 2
-        obj = mercury.pybullet.create_mesh_body(
-            visual_file=mercury.datasets.ycb.get_visual_file(class_id),
+        obj = reorientbot.pybullet.create_mesh_body(
+            visual_file=reorientbot.datasets.ycb.get_visual_file(class_id),
             rgba_color=(1, 1, 1, 0.5),
             mesh_scale=(0.99, 0.99, 0.99),
         )
-        c = mercury.geometry.Coordinate(
+        c = reorientbot.geometry.Coordinate(
             quaternion=_utils.get_canonical_quaternion(class_id)
         )
         c.rotate([0, 0, np.deg2rad(90)])
@@ -724,12 +726,12 @@ class ReorientbotTaskInterface:
 
         # 3rd
         class_id = 2
-        obj = mercury.pybullet.create_mesh_body(
-            visual_file=mercury.datasets.ycb.get_visual_file(class_id),
+        obj = reorientbot.pybullet.create_mesh_body(
+            visual_file=reorientbot.datasets.ycb.get_visual_file(class_id),
             rgba_color=(1, 1, 1, 0.5),
             mesh_scale=(0.99, 0.99, 0.99),
         )
-        c = mercury.geometry.Coordinate(
+        c = reorientbot.geometry.Coordinate(
             quaternion=_utils.get_canonical_quaternion(class_id)
         )
         c.translate([0.105, -0.12, 0.43], wrt="world")
@@ -753,12 +755,12 @@ class ReorientbotTaskInterface:
 
         # 4th
         class_id = 5
-        obj = mercury.pybullet.create_mesh_body(
-            visual_file=mercury.datasets.ycb.get_visual_file(class_id),
+        obj = reorientbot.pybullet.create_mesh_body(
+            visual_file=reorientbot.datasets.ycb.get_visual_file(class_id),
             rgba_color=(1, 1, 1, 0.5),
             mesh_scale=(0.99, 0.99, 0.99),
         )
-        c = mercury.geometry.Coordinate(
+        c = reorientbot.geometry.Coordinate(
             quaternion=_utils.get_canonical_quaternion(class_id)
         )
         c.translate([0.10, 0.08, 0.39], wrt="world")
@@ -782,12 +784,12 @@ class ReorientbotTaskInterface:
 
         # 5th
         class_id = 11
-        obj = mercury.pybullet.create_mesh_body(
-            visual_file=mercury.datasets.ycb.get_visual_file(class_id),
+        obj = reorientbot.pybullet.create_mesh_body(
+            visual_file=reorientbot.datasets.ycb.get_visual_file(class_id),
             rgba_color=(1, 1, 1, 0.5),
             mesh_scale=(0.99, 0.99, 0.99),
         )
-        c = mercury.geometry.Coordinate(
+        c = reorientbot.geometry.Coordinate(
             quaternion=_utils.get_canonical_quaternion(class_id)
         )
         c.rotate([0, 0, np.deg2rad(-70)])
@@ -811,12 +813,12 @@ class ReorientbotTaskInterface:
 
         # 6th
         class_id = 3
-        obj = mercury.pybullet.create_mesh_body(
-            visual_file=mercury.datasets.ycb.get_visual_file(class_id),
+        obj = reorientbot.pybullet.create_mesh_body(
+            visual_file=reorientbot.datasets.ycb.get_visual_file(class_id),
             rgba_color=(1, 1, 1, 0.5),
             mesh_scale=(0.99, 0.99, 0.99),
         )
-        c = mercury.geometry.Coordinate(
+        c = reorientbot.geometry.Coordinate(
             quaternion=_utils.get_canonical_quaternion(class_id)
         )
         c.rotate([0, 0, np.deg2rad(-90)])

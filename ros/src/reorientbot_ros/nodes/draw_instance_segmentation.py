@@ -7,12 +7,12 @@ import message_filters
 import rospy
 from sensor_msgs.msg import Image
 
-from mercury_ros.msg import ObjectClassArray
+from reorientbot_ros.msg import ObjectClassArray
 
 import imgviz
 import numpy as np
 
-from mercury.datasets.ycb import class_names
+from reorientbot.datasets.ycb import class_names
 
 
 class DrawInstanceSegmentation(LazyTransport):

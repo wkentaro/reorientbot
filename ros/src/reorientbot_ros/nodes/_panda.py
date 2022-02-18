@@ -1,12 +1,12 @@
 import path
 import skrobot
 
-import mercury
+import reorientbot
 
 
 class Panda(skrobot.models.Panda):
     def __init__(self, *args, **kwargs):
-        root_dir = path.Path(mercury.__file__).parent
+        root_dir = path.Path(reorientbot.__file__).parent
         urdf_file = (
             root_dir / "_pybullet/data/franka_panda/panda_drl.urdf"
         )  # NOQA

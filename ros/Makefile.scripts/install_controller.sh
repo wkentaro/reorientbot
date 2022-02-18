@@ -22,4 +22,4 @@ if [ ! -d franka_ros ]; then
 fi
 rosdep install --from-path . -r -y -i
 
-catkin build mercury_ros
+catkin build reorient_ros

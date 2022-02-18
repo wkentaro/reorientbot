@@ -2,11 +2,13 @@ import numpy as np
 import open3d
 import trimesh
 
-import mercury
+import reorientbot
 
 
 def tsdf_from_depth(depth, camera_to_base, K):
-    T_camera_to_base = mercury.geometry.transformation_matrix(*camera_to_base)
+    T_camera_to_base = reorientbot.geometry.transformation_matrix(
+        *camera_to_base
+    )
     volume = open3d.pipelines.integration.ScalableTSDFVolume(
         voxel_length=0.005,
         sdf_trunc=0.04,
