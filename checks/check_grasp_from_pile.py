@@ -8,7 +8,7 @@ import numpy as np
 import pybullet as p
 import pybullet_planning
 
-import mercury
+import reorientbot
 
 
 def main():
@@ -25,7 +25,7 @@ def main():
     with pybullet_planning.LockRenderer():
         p.loadURDF("plane.urdf")
 
-    ri = mercury.pybullet.PandaRobotInterface()
+    ri = reorientbot.pybullet.PandaRobotInterface()
 
     p.resetDebugVisualizerCamera(
         cameraDistance=1.5,
@@ -44,11 +44,11 @@ def main():
         position,
         quaternion,
     ) in zip(class_ids, positions, quaternions):
-        visual_file = mercury.datasets.ycb.get_visual_file(class_id=class_id)
-        collision_file = mercury.pybullet.get_collision_file(visual_file)
-        c_obj_to_world = mercury.geometry.Coordinate(position, quaternion)
+        visual_file = reorientbot.datasets.ycb.get_visual_file(class_id=class_id)
+        collision_file = reorientbot.pybullet.get_collision_file(visual_file)
+        c_obj_to_world = reorientbot.geometry.Coordinate(position, quaternion)
         c_obj_to_world.translate([0.5, 0, 0], wrt="world")
-        mercury.pybullet.create_mesh_body(
+        reorientbot.pybullet.create_mesh_body(
             visual_file=collision_file,
             collision_file=collision_file,
             position=c_obj_to_world.position,
@@ -63,7 +63,7 @@ def main():
             if ord("n") in p.getKeyboardEvents():
                 break
 
-    c_camera_to_world = mercury.geometry.Coordinate()
+    c_camera_to_world = reorientbot.geometry.Coordinate()
     c_camera_to_world.rotate([0, 0, np.deg2rad(-90)])
     c_camera_to_world.rotate([np.deg2rad(-180), 0, 0])
     c_camera_to_world.translate([0.5, 0, 0.7], wrt="world")
@@ -72,11 +72,11 @@ def main():
     height = 480
     width = 640
     pybullet_planning.draw_pose(c_camera_to_world.pose)
-    mercury.pybullet.draw_camera(
+    reorientbot.pybullet.draw_camera(
         fovy, height=height, width=width, pose=c_camera_to_world.pose
     )
 
-    # rgb, _, _ = mercury.pybullet.get_camera_image(
+    # rgb, _, _ = reorientbot.pybullet.get_camera_image(
     #     c_camera_to_world.matrix, fovy=np.deg2rad(45), height=480, width=640
     # )
     # imgviz.io.pyglet_imshow(rgb)
@@ -101,10 +101,10 @@ def main():
                 print("Warning: timeout while trying to grasp")
                 break
 
-        mercury.pybullet.step_and_sleep(1)
+        reorientbot.pybullet.step_and_sleep(1)
 
         if ri.gripper.check_grasp():
-            c = mercury.geometry.Coordinate(
+            c = reorientbot.geometry.Coordinate(
                 *pybullet_planning.get_link_pose(ri.robot, ri.ee)
             )
             c.translate([0, 0, 0.5], wrt="world")
@@ -115,7 +115,7 @@ def main():
                 p.stepSimulation()
                 time.sleep(1 / 240)
 
-            mercury.pybullet.step_and_sleep(3)
+            reorientbot.pybullet.step_and_sleep(3)
 
         ri.ungrasp()
 

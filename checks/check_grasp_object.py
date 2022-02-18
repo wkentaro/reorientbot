@@ -7,7 +7,7 @@ import numpy as np
 import pybullet as p
 import pybullet_planning
 
-import mercury
+import reorientbot
 
 
 def main():
@@ -24,21 +24,21 @@ def main():
 
     p.loadURDF("plane.urdf")
 
-    ri = mercury.pybullet.PandaRobotInterface()
+    ri = reorientbot.pybullet.PandaRobotInterface()
 
     class_id = 16
-    visual_file = mercury.datasets.ycb.get_visual_file(class_id=class_id)
-    collision_file = mercury.pybullet.get_collision_file(visual_file)
+    visual_file = reorientbot.datasets.ycb.get_visual_file(class_id=class_id)
+    collision_file = reorientbot.pybullet.get_collision_file(visual_file)
     with pybullet_planning.LockRenderer():
-        obj = mercury.pybullet.create_mesh_body(
+        obj = reorientbot.pybullet.create_mesh_body(
             visual_file=collision_file,
             collision_file=collision_file,
             position=(0, 0, 0),
             quaternion=(0, 0, 0, 1),
-            mass=mercury.datasets.ycb.masses[class_id],
+            mass=reorientbot.datasets.ycb.masses[class_id],
             rgba_color=imgviz.label_colormap()[class_id] / 255,
         )
-    aabb_min, _ = mercury.pybullet.get_aabb(obj)
+    aabb_min, _ = reorientbot.pybullet.get_aabb(obj)
 
     spawn_aabb = [0.3, -0.3, 0], [0.5, 0.3, 0]
     pybullet_planning.draw_aabb(spawn_aabb)
@@ -47,12 +47,12 @@ def main():
         p.resetBasePositionAndOrientation(
             obj,
             -aabb_min + np.random.uniform(*spawn_aabb),
-            mercury.geometry.quaternion_from_euler(
+            reorientbot.geometry.quaternion_from_euler(
                 [0, 0, np.random.uniform(-np.pi, np.pi)]
             ),
         )
 
-        c = mercury.geometry.Coordinate(
+        c = reorientbot.geometry.Coordinate(
             *pybullet_planning.get_link_pose(ri.robot, ri.ee),
         )
         c.position = pybullet_planning.get_pose(obj)[0]
@@ -70,7 +70,7 @@ def main():
             ri.step_simulation()
             time.sleep(1 / 240)
 
-        c = mercury.geometry.Coordinate(
+        c = reorientbot.geometry.Coordinate(
             *pybullet_planning.get_link_pose(ri.robot, ri.ee),
         )
 
@@ -90,7 +90,7 @@ def main():
                 ri.step_simulation()
                 time.sleep(1 / 240)
 
-        # mercury.pybullet.step_and_sleep(0.5)
+        # reorientbot.pybullet.step_and_sleep(0.5)
 
         ri.ungrasp()
 

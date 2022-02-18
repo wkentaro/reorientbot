@@ -7,7 +7,7 @@ import imgviz
 import numpy as np
 import pybullet_planning as pp
 
-import mercury
+import reorientbot
 
 
 def main():
@@ -28,7 +28,7 @@ def main():
     pp.load_pybullet("plane.urdf")
     pp.enable_gravity()
 
-    ri = mercury.pybullet.PandaRobotInterface()
+    ri = reorientbot.pybullet.PandaRobotInterface()
     homej_quaternion = ri.get_pose("tipLink")[1]
 
     if args.type == "topdown":
@@ -49,7 +49,7 @@ def main():
         pp.set_pose(sphere, ([0, 0.3, 0.3], [0, 0, 0, 1]))
 
     if 1:
-        c_homej = mercury.geometry.Coordinate(*ri.get_pose("tipLink"))
+        c_homej = reorientbot.geometry.Coordinate(*ri.get_pose("tipLink"))
         for euler in eulers:
             c = c_homej.copy()
             c.rotate(euler)
@@ -69,7 +69,7 @@ def main():
 
     points = xyz.reshape(-1, 3)
     for point in np.random.permutation(points):
-        c_cano = mercury.geometry.Coordinate(
+        c_cano = reorientbot.geometry.Coordinate(
             point, quaternion=homej_quaternion
         )
 

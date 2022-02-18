@@ -3,7 +3,7 @@
 import pybullet as p
 import pybullet_planning
 
-import mercury
+import reorientbot
 
 
 def main():
@@ -18,9 +18,9 @@ def main():
         cameraTargetPosition=(0, 0, 0.4),
     )
 
-    mercury.pybullet.create_bin(X=0.4, Y=0.6, Z=0.2)
+    reorientbot.pybullet.create_bin(X=0.4, Y=0.6, Z=0.2)
 
-    mercury.pybullet.step_and_sleep()
+    reorientbot.pybullet.step_and_sleep()
 
 
 if __name__ == "__main__":

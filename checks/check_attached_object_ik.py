@@ -6,7 +6,7 @@ import numpy as np
 import pybullet as p
 import pybullet_planning as pp
 
-import mercury
+import reorientbot
 
 
 def main():
@@ -21,7 +21,7 @@ def main():
     )
 
     p.loadURDF("plane.urdf")
-    ri = mercury.pybullet.PandaRobotInterface()
+    ri = reorientbot.pybullet.PandaRobotInterface()
 
     # -------------------------------------------------------------------------
 
@@ -49,7 +49,7 @@ def main():
 
     # -------------------------------------------------------------------------
 
-    c_init = mercury.geometry.Coordinate(*pp.get_pose(cube))
+    c_init = reorientbot.geometry.Coordinate(*pp.get_pose(cube))
 
     c1 = c_init.copy()
     c1.translate([0.3, -0.3, -0.3], wrt="world")

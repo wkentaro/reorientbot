@@ -8,7 +8,7 @@ import pybullet as p
 import pybullet_planning
 import tqdm
 
-import mercury
+import reorientbot
 
 
 def main():
@@ -32,17 +32,17 @@ def main():
         raise ValueError
 
     tiled = []
-    class_names = mercury.datasets.ycb.class_names
+    class_names = reorientbot.datasets.ycb.class_names
     for class_id in tqdm.tqdm(class_ids):
-        visual_file = mercury.datasets.ycb.get_visual_file(class_id)
-        obj = mercury.pybullet.create_mesh_body(
+        visual_file = reorientbot.datasets.ycb.get_visual_file(class_id)
+        obj = reorientbot.pybullet.create_mesh_body(
             visual_file=visual_file,
         )
 
-        T_camera_to_world = mercury.geometry.look_at(
+        T_camera_to_world = reorientbot.geometry.look_at(
             eye=[0.2, 0.2, 0.2], target=[0, 0, 0]
         )
-        rgb, _, _ = mercury.pybullet.get_camera_image(
+        rgb, _, _ = reorientbot.pybullet.get_camera_image(
             T_cam2world=T_camera_to_world,
             fovy=np.deg2rad(50),
             height=230,
