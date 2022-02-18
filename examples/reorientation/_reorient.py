@@ -47,7 +47,9 @@ def get_query_ocs(env):
     pcd_in_world = reorientbot.geometry.transform_points(
         pcd_in_camera, T_camera_to_world
     )
-    normals_in_world = reorientbot.geometry.normals_from_pointcloud(pcd_in_world)
+    normals_in_world = reorientbot.geometry.normals_from_pointcloud(
+        pcd_in_world
+    )
     normals_in_world *= -1  # flip normals
 
     mask = segm == env.fg_object_id
@@ -95,7 +97,9 @@ def get_grasp_poses(env):
     pcd_in_camera = reorientbot.geometry.pointcloud_from_depth(
         depth, fx=K[0, 0], fy=K[1, 1], cx=K[0, 2], cy=K[1, 2]
     )
-    normals_in_camera = reorientbot.geometry.normals_from_pointcloud(pcd_in_camera)
+    normals_in_camera = reorientbot.geometry.normals_from_pointcloud(
+        pcd_in_camera
+    )
 
     normals_on_obj = normals_in_camera.copy()
     normals_on_obj[~mask] = 0
@@ -175,12 +179,12 @@ def plan_reorient(env, grasp_pose, reorient_pose):
     )
 
     def before_return():
-        env.ri.attachments = []
+        env.pi.attachments = []
         world_saver.restore()
         pp.remove_body(obj_af)
         # lock_renderer.restore()
 
-    result["j_init"] = env.ri.getj()
+    result["j_init"] = env.pi.getj()
 
     bg_object_ids = env.bg_objects + env.object_ids
     bg_object_ids.remove(env.fg_object_id)
@@ -190,11 +194,11 @@ def plan_reorient(env, grasp_pose, reorient_pose):
 
     # find self-collision-free j_grasp
     for dg in np.random.uniform(-np.pi, np.pi, size=(8,)):
-        env.ri.attachments = []
+        env.pi.attachments = []
 
         c = reorientbot.geometry.Coordinate(*ee_af_to_world)
         c.rotate([0, 0, dg])
-        j = env.ri.solve_ik(
+        j = env.pi.solve_ik(
             c.pose, n_init=5, validate=True, obstacles=bg_object_ids
         )
         if j is None:
@@ -205,19 +209,19 @@ def plan_reorient(env, grasp_pose, reorient_pose):
 
         obj_to_world = pp.get_pose(env.fg_object_id)
         obj_to_ee = pp.multiply(pp.invert(c.pose), obj_to_world)
-        env.ri.attachments = [
-            pp.Attachment(env.ri.robot, env.ri.ee, obj_to_ee, env.fg_object_id)
+        env.pi.attachments = [
+            pp.Attachment(env.pi.robot, env.pi.ee, obj_to_ee, env.fg_object_id)
         ]
 
-        with env.ri.enabling_attachments():
-            j = env.ri.solve_ik(
+        with env.pi.enabling_attachments():
+            j = env.pi.solve_ik(
                 obj_af_to_world,
-                move_target=env.ri.robot_model.attachment_link0,
+                move_target=env.pi.robot_model.attachment_link0,
                 thre=0.05,
                 n_init=5,
             )
-        env.ri.attachments = []  # skip env.ri.attachments from validatej
-        if j is not None and env.ri.validatej(
+        env.pi.attachments = []  # skip env.pi.attachments from validatej
+        if j is not None and env.pi.validatej(
             j,
             obstacles=bg_object_ids,
             min_distances=reorientbot.utils.StaticDict(-0.02),
@@ -230,25 +234,25 @@ def plan_reorient(env, grasp_pose, reorient_pose):
         before_return()
         return result
 
-    env.ri.attachments = []
+    env.pi.attachments = []
 
-    env.ri.setj(result["j_grasp"])
-    ee_af_to_world = env.ri.get_pose("tipLink")
+    env.pi.setj(result["j_grasp"])
+    ee_af_to_world = env.pi.get_pose("tipLink")
 
     obj_to_world = pp.get_pose(env.fg_object_id)
     obj_to_ee = pp.multiply(pp.invert(ee_af_to_world), obj_to_world)
     result["attachments"] = [
-        pp.Attachment(env.ri.robot, env.ri.ee, obj_to_ee, env.fg_object_id)
+        pp.Attachment(env.pi.robot, env.pi.ee, obj_to_ee, env.fg_object_id)
     ]
-    env.ri.attachments = result["attachments"]
+    env.pi.attachments = result["attachments"]
 
     c = reorientbot.geometry.Coordinate(*ee_af_to_world)
     c.translate([0, 0, 0.2], wrt="world")
-    j = env.ri.solve_ik(c.pose, rthre=np.deg2rad(30), thre=0.05)
+    j = env.pi.solve_ik(c.pose, rthre=np.deg2rad(30), thre=0.05)
     if j is None:
         c = reorientbot.geometry.Coordinate(*ee_af_to_world)
         c.translate([0, 0, -0.2], wrt="local")
-        j = env.ri.solve_ik(c.pose, rthre=np.deg2rad(30), thre=0.05)
+        j = env.pi.solve_ik(c.pose, rthre=np.deg2rad(30), thre=0.05)
     if j is None:
         logger.warning("j_post_grasp is not found")
         before_return()
@@ -256,10 +260,10 @@ def plan_reorient(env, grasp_pose, reorient_pose):
     else:
         result["j_post_grasp"] = j
 
-    env.ri.setj(result["j_place"])
-    c = reorientbot.geometry.Coordinate(*env.ri.get_pose("tipLink"))
+    env.pi.setj(result["j_place"])
+    c = reorientbot.geometry.Coordinate(*env.pi.get_pose("tipLink"))
     c.translate([0, 0, 0.1], wrt="world")
-    j = env.ri.solve_ik(c.pose, n_init=1, rthre=np.deg2rad(30), thre=0.01)
+    j = env.pi.solve_ik(c.pose, n_init=1, rthre=np.deg2rad(30), thre=0.01)
     if j is None:
         logger.warning("j_pre_place is not found")
         before_return()
@@ -268,13 +272,13 @@ def plan_reorient(env, grasp_pose, reorient_pose):
         result["j_pre_place"] = j
 
     # solve js_grasp
-    env.ri.setj(result["j_grasp"])
-    env.ri.attachments = []
+    env.pi.setj(result["j_grasp"])
+    env.pi.attachments = []
     c = reorientbot.geometry.Coordinate(*ee_af_to_world)
     js = []
     for _ in range(5):
         c.translate([0, 0, -0.02])
-        j = env.ri.solve_ik(c.pose, n_init=1)
+        j = env.pi.solve_ik(c.pose, n_init=1)
         if j is None:
             break
         js.append(j)
@@ -285,7 +289,7 @@ def plan_reorient(env, grasp_pose, reorient_pose):
         return result
     result["js_grasp"] = js
 
-    if not env.ri.validatej(
+    if not env.pi.validatej(
         js[0], obstacles=bg_object_ids + [env.fg_object_id]
     ):
         logger.warning("j_pre_grasp is invalid")
@@ -294,8 +298,8 @@ def plan_reorient(env, grasp_pose, reorient_pose):
     result["j_pre_grasp"] = js[0]
 
     # solve js_pre_grasp
-    env.ri.setj(result["j_init"])
-    js = env.ri.planj(
+    env.pi.setj(result["j_init"])
+    js = env.pi.planj(
         result["j_pre_grasp"],
         obstacles=env.bg_objects + env.object_ids,
     )
@@ -305,14 +309,14 @@ def plan_reorient(env, grasp_pose, reorient_pose):
         return result
     result["js_pre_grasp"] = js
 
-    env.ri.setj(result["j_post_grasp"])
-    env.ri.attachments = result["attachments"]
-    env.ri.attachments[0].assign()
+    env.pi.setj(result["j_post_grasp"])
+    env.pi.attachments = result["attachments"]
+    env.pi.attachments[0].assign()
 
     # solve js_place
     obstacles = env.bg_objects + env.object_ids
-    obstacles.remove(env.ri.attachments[0].child)
-    js = env.ri.planj(
+    obstacles.remove(env.pi.attachments[0].child)
+    js = env.pi.planj(
         result["j_pre_place"],
         obstacles=obstacles,
         min_distances_start_goal=reorientbot.utils.StaticDict(-0.01),
@@ -325,14 +329,14 @@ def plan_reorient(env, grasp_pose, reorient_pose):
         [result["j_post_grasp"]], js, [result["j_place"]]
     ]
 
-    env.ri.setj(result["j_place"])
-    env.ri.attachments[0].assign()
-    env.ri.attachments = []
+    env.pi.setj(result["j_place"])
+    env.pi.attachments[0].assign()
+    env.pi.attachments = []
 
-    c = reorientbot.geometry.Coordinate(*env.ri.get_pose("tipLink"))
+    c = reorientbot.geometry.Coordinate(*env.pi.get_pose("tipLink"))
     c.translate([0, 0, -0.1], wrt="local")
     c.translate([0, 0, 0.2], wrt="world")
-    j = env.ri.solve_ik(c.pose, rotation_axis=False, n_init=1)
+    j = env.pi.solve_ik(c.pose, rotation_axis=False, n_init=1)
     result["js_post_place"] = [] if j is None else [j]
 
     logger.success("Found the solution for reorientation")
@@ -351,12 +355,12 @@ def plan_reorient(env, grasp_pose, reorient_pose):
 
 def execute_reorient(env, result):
     js = result["js_pre_grasp"]
-    for _ in (_ for j in js for _ in env.ri.movej(j)):
+    for _ in (_ for j in js for _ in env.pi.movej(j)):
         pp.step_simulation()
         if pp.has_gui():
             time.sleep(pp.get_time_step())
 
-    for _ in env.ri.grasp(
+    for _ in env.pi.grasp(
         min_dz=0.08, max_dz=0.12, rotation_axis=True, speed=0.001
     ):
         pp.step_simulation()
@@ -365,7 +369,7 @@ def execute_reorient(env, result):
 
     t_place = 0
     js = result["js_place"]
-    for _ in (_ for j in js for _ in env.ri.movej(j, speed=0.005)):
+    for _ in (_ for j in js for _ in env.pi.movej(j, speed=0.005)):
         pp.step_simulation()
         t_place += pp.get_time_step()
         if pp.has_gui():
@@ -376,15 +380,15 @@ def execute_reorient(env, result):
         if pp.has_gui():
             time.sleep(pp.get_time_step())
 
-    env.ri.ungrasp()
+    env.pi.ungrasp()
 
     js = result["js_post_place"]
-    for _ in (_ for j in js for _ in env.ri.movej(j)):
+    for _ in (_ for j in js for _ in env.pi.movej(j)):
         pp.step_simulation()
         if pp.has_gui():
             time.sleep(pp.get_time_step())
 
-    for _ in env.ri.movej(env.ri.homej):
+    for _ in env.pi.movej(env.pi.homej):
         pp.step_simulation()
         if pp.has_gui():
             time.sleep(pp.get_time_step())
@@ -465,7 +469,7 @@ def get_static_reorient_poses(env):
 def plan_place(env, target_grasp_poses):
     obj_to_world = pp.get_pose(env.fg_object_id)
 
-    j_init = env.ri.getj()
+    j_init = env.pi.getj()
 
     nfail_j_grasp = 0
     max_nfail_j_grasp = 9
@@ -483,24 +487,24 @@ def plan_place(env, target_grasp_poses):
 
             c = reorientbot.geometry.Coordinate(*ee_to_world)
             c.rotate([0, 0, dg])
-            j = env.ri.solve_ik(c.pose)
-            if j is None or not env.ri.validatej(j, obstacles=env.bg_objects):
+            j = env.pi.solve_ik(c.pose)
+            if j is None or not env.pi.validatej(j, obstacles=env.bg_objects):
                 world_saver.restore()
-                env.ri.attachments = []
+                env.pi.attachments = []
                 print("no j_grasp")
                 nfail_j_grasp += 1
                 continue
             result["j_grasp"] = j
 
-            env.ri.setj(result["j_grasp"])
+            env.pi.setj(result["j_grasp"])
             ee_to_world = c.pose
 
             c = reorientbot.geometry.Coordinate(*ee_to_world)
             c.translate([0, 0, -0.1])
-            j = env.ri.solve_ik(c.pose)
-            if j is None or not env.ri.validatej(j, obstacles=env.bg_objects):
+            j = env.pi.solve_ik(c.pose)
+            if j is None or not env.pi.validatej(j, obstacles=env.bg_objects):
                 world_saver.restore()
-                env.ri.attachments = []
+                env.pi.attachments = []
                 print("no j_pre_grasp")
                 continue
             result["j_pre_grasp"] = j
@@ -508,86 +512,86 @@ def plan_place(env, target_grasp_poses):
             ee_to_obj = pp.multiply(pp.invert(obj_to_world), ee_to_world)
             result["attachments"] = [
                 pp.Attachment(
-                    env.ri.robot,
-                    env.ri.ee,
+                    env.pi.robot,
+                    env.pi.ee,
                     pp.invert(ee_to_obj),
                     env.fg_object_id,
                 )
             ]
-            env.ri.attachments = result["attachments"]
+            env.pi.attachments = result["attachments"]
 
             c = reorientbot.geometry.Coordinate(*ee_to_world)
             c.translate([0, 0, -0.2], wrt="local")
-            j = env.ri.solve_ik(c.pose)
-            if j is None or not env.ri.validatej(j, obstacles=env.bg_objects):
+            j = env.pi.solve_ik(c.pose)
+            if j is None or not env.pi.validatej(j, obstacles=env.bg_objects):
                 world_saver.restore()
-                env.ri.attachments = []
+                env.pi.attachments = []
                 print("no j_post_grasp")
                 continue
             result["j_post_grasp"] = j
 
-            env.ri.setj(result["j_post_grasp"])
+            env.pi.setj(result["j_post_grasp"])
 
-            with env.ri.enabling_attachments():
-                j = env.ri.solve_ik(
+            with env.pi.enabling_attachments():
+                j = env.pi.solve_ik(
                     env.PRE_PLACE_POSE,
-                    move_target=env.ri.robot_model.attachment_link0,
+                    move_target=env.pi.robot_model.attachment_link0,
                     n_init=10,
                     validate=True,
                 )
             if j is None:
                 world_saver.restore()
-                env.ri.attachments = []
+                env.pi.attachments = []
                 print("no j_pre_place")
                 continue
             result["j_pre_place"] = j
 
-            env.ri.setj(result["j_pre_place"])
-            # env.ri.attachments[0].assign()
+            env.pi.setj(result["j_pre_place"])
+            # env.pi.attachments[0].assign()
 
             if env.LAST_PRE_PLACE_POSE is None:
                 result["j_last_pre_place"] = None
             else:
-                with env.ri.enabling_attachments():
-                    j = env.ri.solve_ik(
+                with env.pi.enabling_attachments():
+                    j = env.pi.solve_ik(
                         env.LAST_PRE_PLACE_POSE,
-                        move_target=env.ri.robot_model.attachment_link0,
+                        move_target=env.pi.robot_model.attachment_link0,
                         n_init=3,
                     )
                 if j is None:
                     world_saver.restore()
-                    env.ri.attachments = []
+                    env.pi.attachments = []
                     print("no j_last_pre_place")
                     continue
                 result["j_last_pre_place"] = j
 
             if result["j_last_pre_place"] is not None:
-                env.ri.setj(result["j_last_pre_place"])
+                env.pi.setj(result["j_last_pre_place"])
 
-            with env.ri.enabling_attachments():
-                j = env.ri.solve_ik(
+            with env.pi.enabling_attachments():
+                j = env.pi.solve_ik(
                     env.PLACE_POSE,
-                    move_target=env.ri.robot_model.attachment_link0,
+                    move_target=env.pi.robot_model.attachment_link0,
                 )
-            env.ri.attachments = []
-            if j is None or not env.ri.validatej(j, obstacles=env.bg_objects):
+            env.pi.attachments = []
+            if j is None or not env.pi.validatej(j, obstacles=env.bg_objects):
                 world_saver.restore()
-                env.ri.attachments = []
+                env.pi.attachments = []
                 print("no j_place")
                 continue
-            env.ri.attachments = result["attachments"]
+            env.pi.attachments = result["attachments"]
             result["j_place"] = j
 
             break
         else:
             world_saver.restore()
-            env.ri.attachments = []
+            env.pi.attachments = []
             continue
 
-        env.ri.attachments = []
+        env.pi.attachments = []
 
-        env.ri.setj(j_init)
-        js = env.ri.planj(
+        env.pi.setj(j_init)
+        js = env.pi.planj(
             result["j_pre_grasp"],
             obstacles=env.bg_objects + env.object_ids,
             min_distances=reorientbot.utils.StaticDict(-0.01),
@@ -595,73 +599,73 @@ def plan_place(env, target_grasp_poses):
         if js is None:
             logger.warning("js_pre_grasp is not found")
             world_saver.restore()
-            env.ri.attachments = []
+            env.pi.attachments = []
             continue
         result["js_pre_grasp"] = js
 
-        env.ri.setj(result["j_post_grasp"])
+        env.pi.setj(result["j_post_grasp"])
 
         obstacles = env.bg_objects + env.object_ids
         obstacles.remove(env.fg_object_id)
 
-        env.ri.attachments = result["attachments"]
-        js = env.ri.planj(
+        env.pi.attachments = result["attachments"]
+        js = env.pi.planj(
             result["j_pre_place"],
             obstacles=obstacles,
         )
         if js is None:
             logger.warning("js_pre_place is not found")
             world_saver.restore()
-            env.ri.attachments = []
+            env.pi.attachments = []
             continue
         result["js_pre_place"] = js
 
-        env.ri.setj(result["j_pre_place"])
-        pose1 = env.ri.get_pose("tipLink")
+        env.pi.setj(result["j_pre_place"])
+        pose1 = env.pi.get_pose("tipLink")
         if result["j_last_pre_place"] is None:
-            env.ri.setj(result["j_place"])
+            env.pi.setj(result["j_place"])
         else:
-            env.ri.setj(result["j_last_pre_place"])
-        pose2 = env.ri.get_pose("tipLink")
+            env.pi.setj(result["j_last_pre_place"])
+        pose2 = env.pi.get_pose("tipLink")
 
-        env.ri.setj(result["j_pre_place"])
+        env.pi.setj(result["j_pre_place"])
         js = []
-        env.ri.attachments = []
+        env.pi.attachments = []
         for pose in pp.interpolate_poses_by_num_steps(
             pose1, pose2, num_steps=5
         ):
-            j = env.ri.solve_ik(pose, rthre=np.deg2rad(10), thre=0.01)
-            if j is None or not env.ri.validatej(
+            j = env.pi.solve_ik(pose, rthre=np.deg2rad(10), thre=0.01)
+            if j is None or not env.pi.validatej(
                 j,
                 obstacles=obstacles,
                 min_distances=reorientbot.utils.StaticDict(-0.01),
             ):
                 break
-            env.ri.setj(j)
+            env.pi.setj(j)
             js.append(j)
         if len(js) != 6:
             logger.warning("js_place is not found")
             world_saver.restore()
-            env.ri.attachments = []
+            env.pi.attachments = []
             continue
-        env.ri.setj(result["j_place"])
-        pose = env.ri.get_pose("tipLink")
-        j = env.ri.solve_ik(pose)
+        env.pi.setj(result["j_place"])
+        pose = env.pi.get_pose("tipLink")
+        j = env.pi.solve_ik(pose)
         if j is not None:
             js.append(j)
         result["js_place"] = js
 
-        env.ri.setj(result["j_place"])
-        pose1 = env.ri.get_pose("tipLink")
-        env.ri.setj(result["j_pre_place"])
-        pose2 = env.ri.get_pose("tipLink")
+        env.pi.setj(result["j_place"])
+        pose1 = env.pi.get_pose("tipLink")
+        env.pi.setj(result["j_pre_place"])
+        pose2 = env.pi.get_pose("tipLink")
         js = []
         for pose in pp.interpolate_poses_by_num_steps(
             pose1, pose2, num_steps=5
         ):
-            j = env.ri.solve_ik(pose)
+            j = env.pi.solve_ik(pose)
             if j is not None:
-                env.ri.setj(j)
+                env.pi.setj(j)
                 js.append(j)
         js.append(result["j_pre_place"])
         result["js_post_place"] = js
@@ -669,34 +673,34 @@ def plan_place(env, target_grasp_poses):
         break
 
     world_saver.restore()
-    env.ri.attachments = []
+    env.pi.attachments = []
     return result
 
 
 def execute_place(env, result):
-    for _ in (_ for j in result["js_pre_grasp"] for _ in env.ri.movej(j)):
+    for _ in (_ for j in result["js_pre_grasp"] for _ in env.pi.movej(j)):
         pp.step_simulation()
         if pp.has_gui():
             time.sleep(pp.get_time_step())
 
-    for _ in env.ri.grasp(min_dz=0.08, max_dz=0.12, rotation_axis=True):
+    for _ in env.pi.grasp(min_dz=0.08, max_dz=0.12, rotation_axis=True):
         pp.step_simulation()
         if pp.has_gui():
             time.sleep(pp.get_time_step())
 
-    for _ in env.ri.movej(env.ri.homej):
+    for _ in env.pi.movej(env.pi.homej):
         pp.step_simulation()
         if pp.has_gui():
             time.sleep(pp.get_time_step())
 
     js = result["js_pre_place"]
-    for _ in (_ for j in js for _ in env.ri.movej(j)):
+    for _ in (_ for j in js for _ in env.pi.movej(j)):
         pp.step_simulation()
         if pp.has_gui():
             time.sleep(pp.get_time_step())
 
     js = result["js_place"]
-    for _ in (_ for j in js for _ in env.ri.movej(j, speed=0.005)):
+    for _ in (_ for j in js for _ in env.pi.movej(j, speed=0.005)):
         pp.step_simulation()
         if pp.has_gui():
             time.sleep(pp.get_time_step())
@@ -706,7 +710,7 @@ def execute_place(env, result):
         if pp.has_gui():
             time.sleep(pp.get_time_step())
 
-    env.ri.ungrasp()
+    env.pi.ungrasp()
 
     for _ in range(240):
         pp.step_simulation()
@@ -714,12 +718,12 @@ def execute_place(env, result):
             time.sleep(pp.get_time_step())
 
     js = result["js_place"][::-1]
-    for _ in (_ for j in js for _ in env.ri.movej(j, speed=0.005)):
+    for _ in (_ for j in js for _ in env.pi.movej(j, speed=0.005)):
         pp.step_simulation()
         if pp.has_gui():
             time.sleep(pp.get_time_step())
 
-    for _ in env.ri.movej(env.ri.homej):
+    for _ in env.pi.movej(env.pi.homej):
         pp.step_simulation()
         if pp.has_gui():
             time.sleep(pp.get_time_step())

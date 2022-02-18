@@ -106,7 +106,7 @@ class BaseTaskInterface:
 
     @property
     def pi(self):
-        return self._env.ri
+        return self._env.pi
 
     @property
     def ri(self):

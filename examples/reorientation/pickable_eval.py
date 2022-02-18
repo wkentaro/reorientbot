@@ -174,7 +174,7 @@ def main():
         return
 
     for reorient_pose in reorient_poses:
-        env.ri.setj(env.ri.homej)
+        env.pi.setj(env.pi.homej)
 
         obj_af_to_world = np.hsplit(reorient_pose, [3])
         pp.set_pose(env.fg_object_id, obj_af_to_world)
@@ -190,16 +190,16 @@ def main():
                 ee_af_to_world = pp.multiply(
                     pp.get_pose(env.fg_object_id), ee_af_to_obj
                 )
-                j = env.ri.solve_ik(
+                j = env.pi.solve_ik(
                     ee_af_to_world, rotation_axis="z", rthre=np.deg2rad(10)
                 )
                 if j is not None:
                     obstacles = [env.plane] + env.object_ids
                     obstacles.remove(env.fg_object_id)
-                    if not env.ri.validatej(j, obstacles=obstacles):
+                    if not env.pi.validatej(j, obstacles=obstacles):
                         j = None
                 if j is not None:
-                    env.ri.setj(j)
+                    env.pi.setj(j)
                     break
             else:
                 print("Failed to solve IK")

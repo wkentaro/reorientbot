@@ -460,10 +460,10 @@ class ReorientbotTaskInterface:
                     target=target,
                     rotation_axis="z",
                 )
-                j_bak = self.base._env.ri.getj()
-                self.base._env.ri.setj(j)
+                j_bak = self.base._env.pi.getj()
+                self.base._env.pi.setj(j)
                 self.base._env.update_obs()
-                self.base._env.ri.setj(j_bak)
+                self.base._env.pi.setj(j_bak)
 
                 if "js_place" in self.pick_and_place():
                     break
@@ -482,10 +482,10 @@ class ReorientbotTaskInterface:
                         target=target,
                         rotation_axis="z",
                     )
-                    j_bak = self.base._env.ri.getj()
-                    self.base._env.ri.setj(j)
+                    j_bak = self.base._env.pi.getj()
+                    self.base._env.pi.setj(j)
                     self.base._env.update_obs()
-                    self.base._env.ri.setj(j_bak)
+                    self.base._env.pi.setj(j_bak)
 
                     if "js_place" in self.pick_and_reorient():
                         break

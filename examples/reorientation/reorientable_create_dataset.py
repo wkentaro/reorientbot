@@ -38,7 +38,8 @@ def main():
     args = parser.parse_args()
 
     root_dir = (
-        home / f".cache/reorientbot/reorientation/reorientable/{args.robot_model}"
+        home
+        / f".cache/reorientbot/reorientation/reorientable/{args.robot_model}"
     )
 
     if (root_dir / f"s-{args.seed:08d}/00000099.pkl").exists():
@@ -55,7 +56,7 @@ def main():
     with pp.LockRenderer():
         env.reset()
         for obj in reorientbot.pybullet.get_body_unique_ids():
-            if obj in [env.plane, env.ri.robot] + env.object_ids:
+            if obj in [env.plane, env.pi.robot] + env.object_ids:
                 continue
             pp.remove_body(obj)
 

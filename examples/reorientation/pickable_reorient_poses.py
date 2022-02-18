@@ -123,7 +123,7 @@ def main():
     with pp.LockRenderer():
         env.reset()
         for obj in reorientbot.pybullet.get_body_unique_ids():
-            if obj in [env.plane, env.ri.robot] + env.object_ids:
+            if obj in [env.plane, env.pi.robot] + env.object_ids:
                 continue
             pp.remove_body(obj)
 

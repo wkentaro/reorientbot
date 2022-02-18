@@ -81,7 +81,7 @@ class Env:
             self.plane = pp.load_pybullet("plane.urdf")
             pp.set_pose(self.plane, ([0, 0, self.TABLE_OFFSET], [0, 0, 0, 1]))
 
-        self.ri = reorientbot.pybullet.PandaRobotInterface(
+        self.pi = reorientbot.pybullet.PandaRobotInterface(
             suction_max_force=None,
             suction_surface_threshold=np.inf,
             suction_surface_alignment=False,
@@ -96,7 +96,7 @@ class Env:
             pose = c.pose
         else:
             raise ValueError
-        self.ri.add_camera(
+        self.pi.add_camera(
             pose=pose,
             fovy=np.deg2rad(54),
             height=self.IMAGE_HEIGHT,
@@ -214,18 +214,20 @@ class Env:
         self.bg_objects = [self.plane, self._shelf]
 
     def setj_to_camera_pose(self):
-        self.ri.setj(self.ri.homej)
+        self.pi.setj(self.pi.homej)
         j = None
         while j is None:
-            c = reorientbot.geometry.Coordinate(*self.ri.get_pose("camera_link"))
-            c.position = self.CAMERA_POSITION
-            j = self.ri.solve_ik(
-                c.pose, move_target=self.ri.robot_model.camera_link
+            c = reorientbot.geometry.Coordinate(
+                *self.pi.get_pose("camera_link")
             )
-        self.ri.setj(j)
+            c.position = self.CAMERA_POSITION
+            j = self.pi.solve_ik(
+                c.pose, move_target=self.pi.robot_model.camera_link
+            )
+        self.pi.setj(j)
 
     def update_obs(self):
-        rgb, depth, segm = self.ri.get_camera_image()
+        rgb, depth, segm = self.pi.get_camera_image()
         # if pp.has_gui():
         #     import imgviz
         #
@@ -234,9 +236,9 @@ class Env:
         #     )
         #     imgviz.io.cv_waitkey(100)
         fg_mask = segm == self.fg_object_id
-        camera_to_world = self.ri.get_pose("camera_link")
+        camera_to_world = self.pi.get_pose("camera_link")
 
-        K = self.ri.get_opengl_intrinsic_matrix()
+        K = self.pi.get_opengl_intrinsic_matrix()
         pcd_in_camera = reorientbot.geometry.pointcloud_from_depth(
             depth, fx=K[0, 0], fy=K[1, 1], cx=K[0, 2], cy=K[1, 2]
         )
@@ -266,7 +268,7 @@ class Env:
             depth=depth,
             fg_mask=fg_mask.astype(np.uint8),
             segm=segm,
-            K=self.ri.get_opengl_intrinsic_matrix(),
+            K=self.pi.get_opengl_intrinsic_matrix(),
             target_instance_id=self.fg_object_id,
             segmmap=segmmap,
             pointmap=pointmap,

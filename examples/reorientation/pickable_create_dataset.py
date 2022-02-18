@@ -37,7 +37,9 @@ def main():
     parser.add_argument("--gui", action="store_true", help=" ")
     args = parser.parse_args()
 
-    root_dir = home / f".cache/reorientbot/reorientation/pickable/{args.robot_model}"
+    root_dir = (
+        home / f".cache/reorientbot/reorientation/pickable/{args.robot_model}"
+    )
 
     if (root_dir / f"s-{args.seed:08d}/00000099.pkl").exists():
         return
@@ -53,7 +55,7 @@ def main():
     with pp.LockRenderer():
         env.reset()
         for obj in reorientbot.pybullet.get_body_unique_ids():
-            if obj in [env.plane, env.ri.robot] + env.object_ids:
+            if obj in [env.plane, env.pi.robot] + env.object_ids:
                 continue
             pp.remove_body(obj)
 
@@ -88,7 +90,9 @@ def main():
             pp.step_simulation()
 
         obj_to_world = pp.get_pose(env.fg_object_id)
-        T_obj_to_world = reorientbot.geometry.transformation_matrix(*obj_to_world)
+        T_obj_to_world = reorientbot.geometry.transformation_matrix(
+            *obj_to_world
+        )
 
         pcd_in_world = reorientbot.geometry.transform_points(
             pcd_in_obj, T_obj_to_world
@@ -113,15 +117,15 @@ def main():
 
             pickable = True
 
-            j = env.ri.solve_ik(c.pose, rotation_axis="z")
+            j = env.pi.solve_ik(c.pose, rotation_axis="z")
             if j is not None:
-                env.ri.setj(j)
+                env.pi.setj(j)
                 if args.gui:
                     time.sleep(0.1)
 
                 obstacles = env.bg_objects + env.object_ids
                 obstacles.remove(env.fg_object_id)
-                if not env.ri.validatej(
+                if not env.pi.validatej(
                     j,
                     obstacles=obstacles,
                     min_distances={(env.fg_object_id, -1): -0.01},
@@ -133,15 +137,15 @@ def main():
                 if not pickable:
                     break
                 c.translate([0, 0, 0.02])
-                j = env.ri.solve_ik(c.pose, rotation_axis=True)
+                j = env.pi.solve_ik(c.pose, rotation_axis=True)
                 if j is not None:
-                    env.ri.setj(j)
+                    env.pi.setj(j)
                     if args.gui:
                         time.sleep(0.1)
 
                     obstacles = env.bg_objects + env.object_ids
                     obstacles.remove(env.fg_object_id)
-                    if not env.ri.validatej(j, obstacles=obstacles):
+                    if not env.pi.validatej(j, obstacles=obstacles):
                         j = None
                 pickable &= j is not None
 
