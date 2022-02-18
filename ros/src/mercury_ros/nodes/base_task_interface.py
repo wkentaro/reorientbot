@@ -105,10 +105,6 @@ class BaseTaskInterface:
         self._sub_points_stamp = info_msg.header.stamp
 
     @property
-    def pi(self):
-        return self._env.pi
-
-    @property
     def ri(self):
         return self._ri
 
@@ -151,13 +147,13 @@ class BaseTaskInterface:
 
     def real2robot(self):
         self.ri.update_robot_state()
-        self.pi.setj(self.ri.potentio_vector())
-        for attachment in self.pi.attachments:
+        self._env.pi.setj(self.ri.potentio_vector())
+        for attachment in self._env.pi.attachments:
             attachment.assign()
 
     def visjs(self, js):
         for j in js:
-            for _ in self.pi.movej(j):
+            for _ in self._env.pi.movej(j):
                 pp.step_simulation()
                 time.sleep(1 / 240)
 
@@ -171,7 +167,7 @@ class BaseTaskInterface:
         js = np.asarray(js)
 
         self.real2robot()
-        j_init = self.pi.getj()
+        j_init = self._env.pi.getj()
 
         self.ri.angle_vector_sequence(
             js, time_scale=time_scale, max_pos_accel=1
@@ -182,7 +178,7 @@ class BaseTaskInterface:
                 return
 
             self.real2robot()
-            j_curr = self.pi.getj()
+            j_curr = self._env.pi.getj()
 
             js = np.r_[[j_init], js]
 
@@ -225,7 +221,7 @@ class BaseTaskInterface:
         client.call(data=False)
 
     def reset_pose(self, *args, **kwargs):
-        self.movejs([self.pi.homej], *args, **kwargs)
+        self.movejs([self._env.pi.homej], *args, **kwargs)
 
     def _solve_ik_for_look_at(self, eye, target, rotation_axis=True):
         c = mercury.geometry.Coordinate.from_matrix(
@@ -236,9 +232,9 @@ class BaseTaskInterface:
                 c.rotate([0, 0, np.deg2rad(90)])
                 if abs(c.euler[2] - np.deg2rad(-90)) < np.pi / 4:
                     break
-        j = self.pi.solve_ik(
+        j = self._env.pi.solve_ik(
             c.pose,
-            move_target=self.pi.robot_model.camera_link,
+            move_target=self._env.pi.robot_model.camera_link,
             n_init=20,
             thre=0.05,
             rthre=np.deg2rad(15),

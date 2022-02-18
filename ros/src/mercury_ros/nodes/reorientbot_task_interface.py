@@ -250,7 +250,7 @@ class ReorientbotTaskInterface:
 
         self.base.movejs(result["js_pre_grasp"], time_scale=5, retry=True)
 
-        js = self.base.pi.get_cartesian_path(j=result["j_grasp"])
+        js = self.base._env.pi.get_cartesian_path(j=result["j_grasp"])
 
         if _utils.get_class_id(self.base._env.fg_object_id) == 5:
             # likely to move
@@ -262,7 +262,7 @@ class ReorientbotTaskInterface:
             self.base.start_grasp()
 
         rospy.sleep(1)
-        self.base.pi.attachments = result["attachments"]
+        self.base._env.pi.attachments = result["attachments"]
 
         self.base.movejs(result["js_pre_place"], time_scale=5, retry=True)
 
@@ -270,12 +270,12 @@ class ReorientbotTaskInterface:
 
         self.base.stop_grasp()
         rospy.sleep(9)
-        self.base.pi.attachments = []
+        self.base._env.pi.attachments = []
 
         self.base.movejs(result["js_post_place"], time_scale=10, retry=True)
 
-        js = self.base.pi.planj(
-            self.base.pi.homej,
+        js = self.base._env.pi.planj(
+            self.base._env.pi.homej,
             obstacles=self.base._env.bg_objects + self.base._env.object_ids,
         )
         if js is None:
@@ -333,7 +333,7 @@ class ReorientbotTaskInterface:
 
         self.base.movejs(result["js_pre_grasp"], time_scale=5, retry=True)
 
-        js = self.base.pi.get_cartesian_path(j=result["j_grasp"])
+        js = self.base._env.pi.get_cartesian_path(j=result["j_grasp"])
 
         if _utils.get_class_id(self.base._env.fg_object_id) == 5:
             # likely to move
@@ -345,18 +345,20 @@ class ReorientbotTaskInterface:
             self.base.start_grasp()
 
         rospy.sleep(1)
-        self.base.pi.attachments = result["attachments"]
+        self.base._env.pi.attachments = result["attachments"]
 
         js = result["js_place"]
         self.base.movejs(js, time_scale=5, retry=True)
 
         with pp.WorldSaver():
-            self.base.pi.setj(js[-1])
-            c = mercury.geometry.Coordinate(*self.base.pi.get_pose("tipLink"))
+            self.base._env.pi.setj(js[-1])
+            c = mercury.geometry.Coordinate(
+                *self.base._env.pi.get_pose("tipLink")
+            )
             js = []
             for i in range(3):
                 c.translate([0, 0, -0.01], wrt="world")
-                j = self.base.pi.solve_ik(c.pose, rotation_axis=None)
+                j = self.base._env.pi.solve_ik(c.pose, rotation_axis=None)
                 if j is not None:
                     js.append(j)
         self.base.movejs(js, time_scale=10, wait=False)
@@ -364,12 +366,12 @@ class ReorientbotTaskInterface:
         self.base.stop_grasp()
 
         rospy.sleep(6)
-        self.base.pi.attachments = []
+        self.base._env.pi.attachments = []
 
         js = result["js_post_place"]
         self.base.movejs(js, time_scale=5)
 
-        self.base.movejs([self.base.pi.homej], time_scale=3, retry=True)
+        self.base.movejs([self.base._env.pi.homej], time_scale=3, retry=True)
 
         return result
 
@@ -515,7 +517,7 @@ class ReorientbotTaskInterface:
             # (+0.0, -0.2),
         ]
         with pp.WorldSaver():
-            self.base.pi.setj(self.base.pi.homej)
+            self.base._env.pi.setj(self.base._env.pi.homej)
 
             js = []
             for i, (dx, dy) in enumerate(dxdy):
@@ -526,7 +528,7 @@ class ReorientbotTaskInterface:
                     rotation_axis=rotation_axis,
                 )
                 js.append(j)
-                self.base.pi.setj(j)
+                self.base._env.pi.setj(j)
 
         instance_id_to_object_id = {}
 
