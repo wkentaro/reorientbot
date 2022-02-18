@@ -9,12 +9,12 @@ import numpy as np
 import path
 import pybullet_planning as pp
 
-import mercury
+import reorientbot
 
-from mercury.examples.reorientation._env import Env
-from mercury.examples.reorientation import _reorient
-from mercury.examples.reorientation import _utils
-from mercury.examples.reorientation.pickable_reorient_poses import (
+from reorientbot.examples.reorientation._env import Env
+from reorientbot.examples.reorientation import _reorient
+from reorientbot.examples.reorientation import _utils
+from reorientbot.examples.reorientation.pickable_reorient_poses import (
     get_reorient_poses,  # NOQA
 )
 
@@ -38,7 +38,7 @@ def main():
     args = parser.parse_args()
 
     root_dir = (
-        home / f"data/mercury/reorientation/reorientable/{args.robot_model}"
+        home / f"data/reorientbot/reorientation/reorientable/{args.robot_model}"
     )
 
     if (root_dir / f"s-{args.seed:08d}/00000099.pkl").exists():
@@ -54,7 +54,7 @@ def main():
 
     with pp.LockRenderer():
         env.reset()
-        for obj in mercury.pybullet.get_body_unique_ids():
+        for obj in reorientbot.pybullet.get_body_unique_ids():
             if obj in [env.plane, env.ri.robot] + env.object_ids:
                 continue
             pp.remove_body(obj)
@@ -74,7 +74,7 @@ def main():
 
     if args.visualize:
         for reorient_pose in reorient_poses:
-            mercury.pybullet.duplicate(
+            reorientbot.pybullet.duplicate(
                 env.fg_object_id,
                 position=reorient_pose[:3],
                 quaternion=reorient_pose[3:],

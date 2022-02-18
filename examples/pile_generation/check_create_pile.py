@@ -7,7 +7,7 @@ import numpy as np
 import pybullet as p
 import pybullet_planning as pp
 
-import mercury
+import reorientbot
 
 import _utils
 
@@ -30,7 +30,7 @@ def main():
 
     for unique_id in unique_ids:
         class_id = int(p.getUserData(p.getUserDataId(unique_id, "class_id")))
-        class_name = mercury.datasets.ycb.class_names[class_id]
+        class_name = reorientbot.datasets.ycb.class_names[class_id]
         print(
             f"body_id={unique_id}, class_id={class_id:02d}, "
             f"class_name={class_name}"

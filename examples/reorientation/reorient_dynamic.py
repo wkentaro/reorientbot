@@ -12,15 +12,15 @@ import path
 import pybullet_planning as pp
 import torch
 
-import mercury
+import reorientbot
 
-from mercury.examples.reorientation._env import Env
-from mercury.examples.reorientation import _reorient
-from mercury.examples.reorientation import _utils
-from mercury.examples.reorientation.pickable_eval import (
+from reorientbot.examples.reorientation._env import Env
+from reorientbot.examples.reorientation import _reorient
+from reorientbot.examples.reorientation import _utils
+from reorientbot.examples.reorientation.pickable_eval import (
     get_goal_oriented_reorient_poses,  # NOQA
 )
-from mercury.examples.reorientation.reorientable_train import Model
+from reorientbot.examples.reorientation.reorientable_train import Model
 
 
 here = path.Path(__file__).abspath().parent
@@ -67,8 +67,8 @@ def plan_dynamic_reorient(env, grasp_poses, reorient_poses, pickable):
     for grasp_pose in grasp_poses:
         ee_to_obj = np.hsplit(grasp_pose, [3])
         grasp_point_start = ee_to_obj[0]
-        grasp_point_end = mercury.geometry.transform_points(
-            [[0, 0, 1]], mercury.geometry.transformation_matrix(*ee_to_obj)
+        grasp_point_end = reorientbot.geometry.transform_points(
+            [[0, 0, 1]], reorientbot.geometry.transformation_matrix(*ee_to_obj)
         )[0]
         grasp_points.append(np.hstack([grasp_point_start, grasp_point_end]))
 
@@ -325,19 +325,19 @@ def main():
             _reorient.execute_place(env, result)
             obj_to_world_target = env.PLACE_POSE
             obj_to_world_actual = pp.get_pose(env.fg_object_id)
-            pcd_file = mercury.datasets.ycb.get_pcd_file(
+            pcd_file = reorientbot.datasets.ycb.get_pcd_file(
                 _utils.get_class_id(env.fg_object_id)
             )
             pcd_obj = np.loadtxt(pcd_file)
-            pcd_target = mercury.geometry.transform_points(
+            pcd_target = reorientbot.geometry.transform_points(
                 pcd_obj,
-                mercury.geometry.transformation_matrix(*obj_to_world_target),
+                reorientbot.geometry.transformation_matrix(*obj_to_world_target),
             )
-            pcd_actual = mercury.geometry.transform_points(
+            pcd_actual = reorientbot.geometry.transform_points(
                 pcd_obj,
-                mercury.geometry.transformation_matrix(*obj_to_world_actual),
+                reorientbot.geometry.transformation_matrix(*obj_to_world_actual),
             )
-            auc = mercury.geometry.average_distance_auc(
+            auc = reorientbot.geometry.average_distance_auc(
                 pcd_target, pcd_actual, max_threshold=0.1
             )
             success = float(auc) > 0.9

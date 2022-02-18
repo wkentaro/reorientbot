@@ -9,7 +9,7 @@ import path
 import pybullet as p
 import pybullet_planning as pp
 
-import mercury
+import reorientbot
 
 import _utils
 
@@ -36,10 +36,10 @@ def main():
         position = data["position"][i]
         quaternion = data["quaternion"][i]
 
-        visual_file = mercury.datasets.ycb.get_visual_file(class_id=class_id)
-        collision_file = mercury.pybullet.get_collision_file(visual_file)
+        visual_file = reorientbot.datasets.ycb.get_visual_file(class_id=class_id)
+        collision_file = reorientbot.pybullet.get_collision_file(visual_file)
 
-        class_name = mercury.datasets.ycb.class_names[class_id]
+        class_name = reorientbot.datasets.ycb.class_names[class_id]
         visibility = data["visibility"][i]
         logger.info(
             f"class_id={class_id:02d}, "
@@ -47,10 +47,10 @@ def main():
             f"visibility={visibility:.1%}"
         )
 
-        object_id = mercury.pybullet.create_mesh_body(
+        object_id = reorientbot.pybullet.create_mesh_body(
             visual_file=visual_file,
             collision_file=collision_file,
-            mass=mercury.datasets.ycb.masses[class_id],
+            mass=reorientbot.datasets.ycb.masses[class_id],
             position=position,
             quaternion=quaternion,
         )

@@ -3,10 +3,10 @@
 import numpy as np
 import path
 
-import mercury
+import reorientbot
 
-from mercury.examples.reorientation._env import Env
-from mercury.examples.reorientation import _reorient
+from reorientbot.examples.reorientation._env import Env
+from reorientbot.examples.reorientation import _reorient
 
 
 here = path.Path(__file__).abspath().parent
@@ -33,7 +33,7 @@ def main():
             indices = np.random.permutation(pcd_in_obj.shape[0])[:20]
             pcd_in_obj = pcd_in_obj[indices]
             normals_in_obj = normals_in_obj[indices]
-            quaternion_in_obj = mercury.geometry.quaternion_from_vec2vec(
+            quaternion_in_obj = reorientbot.geometry.quaternion_from_vec2vec(
                 [0, 0, -1], normals_in_obj
             )
             target_grasp_poses = np.hstack([pcd_in_obj, quaternion_in_obj])

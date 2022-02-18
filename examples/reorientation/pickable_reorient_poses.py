@@ -8,10 +8,10 @@ import numpy as np
 import path
 import pybullet_planning as pp
 
-import mercury
+import reorientbot
 
-from mercury.examples.reorientation._env import Env
-from mercury.examples.reorientation import _utils
+from reorientbot.examples.reorientation._env import Env
+from reorientbot.examples.reorientation import _utils
 
 
 home = path.Path("~").expanduser()
@@ -60,7 +60,7 @@ def get_reorient_poses(env):
             pp.set_pose(box, ((x, y, 0), (0, 0, 0, 1)))
             obstacles = env.object_ids[:]
             obstacles.remove(env.fg_object_id)
-            if mercury.pybullet.is_colliding(box, ids2=obstacles):
+            if reorientbot.pybullet.is_colliding(box, ids2=obstacles):
                 pp.remove_body(box)
                 continue
             pp.remove_body(box)
@@ -76,7 +76,7 @@ def get_reorient_poses(env):
     with pp.LockRenderer(), pp.WorldSaver():
         for a, b, g in ABG:
             x, y = XY[0]
-            c = mercury.geometry.Coordinate(
+            c = reorientbot.geometry.Coordinate(
                 position=(x, y, 0),
                 quaternion=_utils.get_canonical_quaternion(
                     class_id=_utils.get_class_id(env.fg_object_id)
@@ -122,7 +122,7 @@ def main():
 
     with pp.LockRenderer():
         env.reset()
-        for obj in mercury.pybullet.get_body_unique_ids():
+        for obj in reorientbot.pybullet.get_body_unique_ids():
             if obj in [env.plane, env.ri.robot] + env.object_ids:
                 continue
             pp.remove_body(obj)
@@ -132,7 +132,7 @@ def main():
 
     for reorient_pose in reorient_poses:
         pp.set_pose(env.fg_object_id, np.hsplit(reorient_pose, [3]))
-        mercury.pybullet.pause()
+        reorientbot.pybullet.pause()
 
 
 if __name__ == "__main__":

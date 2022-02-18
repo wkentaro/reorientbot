@@ -10,11 +10,11 @@ import path
 import pybullet_planning as pp
 import trimesh
 
-import mercury
+import reorientbot
 
-from mercury.examples.reorientation._env import Env
-from mercury.examples.reorientation import _utils
-from mercury.examples.reorientation.pickable_reorient_poses import (
+from reorientbot.examples.reorientation._env import Env
+from reorientbot.examples.reorientation import _utils
+from reorientbot.examples.reorientation.pickable_reorient_poses import (
     get_reorient_poses,  # NOQA
 )
 
@@ -37,7 +37,7 @@ def main():
     parser.add_argument("--gui", action="store_true", help=" ")
     args = parser.parse_args()
 
-    root_dir = home / f"data/mercury/reorientation/pickable/{args.robot_model}"
+    root_dir = home / f"data/reorientbot/reorientation/pickable/{args.robot_model}"
 
     if (root_dir / f"s-{args.seed:08d}/00000099.pkl").exists():
         return
@@ -52,7 +52,7 @@ def main():
 
     with pp.LockRenderer():
         env.reset()
-        for obj in mercury.pybullet.get_body_unique_ids():
+        for obj in reorientbot.pybullet.get_body_unique_ids():
             if obj in [env.plane, env.ri.robot] + env.object_ids:
                 continue
             pp.remove_body(obj)
@@ -71,7 +71,7 @@ def main():
     reorient_poses = get_reorient_poses(env)
 
     class_id = _utils.get_class_id(env.fg_object_id)
-    visual_file = mercury.datasets.ycb.get_visual_file(class_id=class_id)
+    visual_file = reorientbot.datasets.ycb.get_visual_file(class_id=class_id)
     mesh = trimesh.load_mesh(visual_file)
     pcd_in_obj = mesh.vertices
     normals_in_obj = mesh.vertex_normals
@@ -88,19 +88,19 @@ def main():
             pp.step_simulation()
 
         obj_to_world = pp.get_pose(env.fg_object_id)
-        T_obj_to_world = mercury.geometry.transformation_matrix(*obj_to_world)
+        T_obj_to_world = reorientbot.geometry.transformation_matrix(*obj_to_world)
 
-        pcd_in_world = mercury.geometry.transform_points(
+        pcd_in_world = reorientbot.geometry.transform_points(
             pcd_in_obj, T_obj_to_world
         )
         normals_in_world = (
-            mercury.geometry.transform_points(
+            reorientbot.geometry.transform_points(
                 pcd_in_obj + normals_in_obj, T_obj_to_world
             )
             - pcd_in_world
         )
 
-        quaternions = mercury.geometry.quaternion_from_vec2vec(
+        quaternions = reorientbot.geometry.quaternion_from_vec2vec(
             [0, 0, -1], normals_in_world
         )
 
@@ -108,7 +108,7 @@ def main():
         for index in indices[:10]:
             ee_af_to_world = pcd_in_world[index], quaternions[index]
 
-            c = mercury.geometry.Coordinate(*ee_af_to_world)
+            c = reorientbot.geometry.Coordinate(*ee_af_to_world)
             c.translate([0, 0, -0.1])
 
             pickable = True

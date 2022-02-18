@@ -10,11 +10,11 @@ import numpy as np
 import path
 import pybullet_planning as pp
 
-import mercury
+import reorientbot
 
-from mercury.examples.reorientation._env import Env
-from mercury.examples.reorientation import _reorient
-from mercury.examples.reorientation import _utils
+from reorientbot.examples.reorientation._env import Env
+from reorientbot.examples.reorientation import _reorient
+from reorientbot.examples.reorientation import _utils
 
 
 def main():
@@ -95,7 +95,7 @@ def main():
         indices = np.random.permutation(pcd_in_obj.shape[0])[:20]
         pcd_in_obj = pcd_in_obj[indices]
         normals_in_obj = normals_in_obj[indices]
-        quaternion_in_obj = mercury.geometry.quaternion_from_vec2vec(
+        quaternion_in_obj = reorientbot.geometry.quaternion_from_vec2vec(
             [0, 0, -1], normals_in_obj
         )
         target_grasp_poses = np.hstack([pcd_in_obj, quaternion_in_obj])
@@ -107,19 +107,19 @@ def main():
             _reorient.execute_place(env, result)
             obj_to_world_target = env.PLACE_POSE
             obj_to_world_actual = pp.get_pose(env.fg_object_id)
-            pcd_file = mercury.datasets.ycb.get_pcd_file(
+            pcd_file = reorientbot.datasets.ycb.get_pcd_file(
                 _utils.get_class_id(env.fg_object_id)
             )
             pcd_obj = np.loadtxt(pcd_file)
-            pcd_target = mercury.geometry.transform_points(
+            pcd_target = reorientbot.geometry.transform_points(
                 pcd_obj,
-                mercury.geometry.transformation_matrix(*obj_to_world_target),
+                reorientbot.geometry.transformation_matrix(*obj_to_world_target),
             )
-            pcd_actual = mercury.geometry.transform_points(
+            pcd_actual = reorientbot.geometry.transform_points(
                 pcd_obj,
-                mercury.geometry.transformation_matrix(*obj_to_world_actual),
+                reorientbot.geometry.transformation_matrix(*obj_to_world_actual),
             )
-            auc = mercury.geometry.average_distance_auc(
+            auc = reorientbot.geometry.average_distance_auc(
                 pcd_target, pcd_actual, max_threshold=0.1
             )
             success = float(auc) > 0.9

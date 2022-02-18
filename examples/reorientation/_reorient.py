@@ -6,9 +6,9 @@ from loguru import logger
 import numpy as np
 import pybullet_planning as pp
 
-import mercury
+import reorientbot
 
-from mercury.examples.reorientation import _utils
+from reorientbot.examples.reorientation import _utils
 
 
 def get_query_ocs(env):
@@ -17,20 +17,20 @@ def get_query_ocs(env):
 
     pp.set_pose(env.fg_object_id, env.PLACE_POSE)
 
-    T_camera_to_world = mercury.geometry.look_at(
+    T_camera_to_world = reorientbot.geometry.look_at(
         env.PRE_PLACE_POSE[0], env.PLACE_POSE[0]
     )
     fovy = np.deg2rad(60)
     height = 240
     width = 240
     if env.debug:
-        mercury.pybullet.draw_camera(
+        reorientbot.pybullet.draw_camera(
             fovy,
             height,
             width,
-            pose=mercury.geometry.pose_from_matrix(T_camera_to_world),
+            pose=reorientbot.geometry.pose_from_matrix(T_camera_to_world),
         )
-    rgb, depth, segm = mercury.pybullet.get_camera_image(
+    rgb, depth, segm = reorientbot.pybullet.get_camera_image(
         T_camera_to_world, fovy, height, width
     )
     # if pp.has_gui():
@@ -40,14 +40,14 @@ def get_query_ocs(env):
     #         np.hstack((rgb, imgviz.depth2rgb(depth))), "get_query_ocs"
     #     )
     #     imgviz.io.cv_waitkey(100)
-    K = mercury.geometry.opengl_intrinsic_matrix(fovy, height, width)
-    pcd_in_camera = mercury.geometry.pointcloud_from_depth(
+    K = reorientbot.geometry.opengl_intrinsic_matrix(fovy, height, width)
+    pcd_in_camera = reorientbot.geometry.pointcloud_from_depth(
         depth, fx=K[0, 0], fy=K[1, 1], cx=K[0, 2], cy=K[1, 2]
     )
-    pcd_in_world = mercury.geometry.transform_points(
+    pcd_in_world = reorientbot.geometry.transform_points(
         pcd_in_camera, T_camera_to_world
     )
-    normals_in_world = mercury.geometry.normals_from_pointcloud(pcd_in_world)
+    normals_in_world = reorientbot.geometry.normals_from_pointcloud(pcd_in_world)
     normals_in_world *= -1  # flip normals
 
     mask = segm == env.fg_object_id
@@ -70,14 +70,14 @@ def get_query_ocs(env):
     # )
 
     world_to_obj = pp.invert(pp.get_pose(env.fg_object_id))
-    pcd_in_obj = mercury.geometry.transform_points(
+    pcd_in_obj = reorientbot.geometry.transform_points(
         pcd_in_world[mask],
-        mercury.geometry.transformation_matrix(*world_to_obj),
+        reorientbot.geometry.transformation_matrix(*world_to_obj),
     )
     normals_in_obj = (
-        mercury.geometry.transform_points(
+        reorientbot.geometry.transform_points(
             pcd_in_world[mask] + normals_in_world[mask],
-            mercury.geometry.transformation_matrix(*world_to_obj),
+            reorientbot.geometry.transformation_matrix(*world_to_obj),
         )
         - pcd_in_obj
     )
@@ -92,10 +92,10 @@ def get_grasp_poses(env):
     depth = env.obs["depth"]
     K = env.obs["K"]
     mask = (segm == env.obs["target_instance_id"]) & (~np.isnan(depth))
-    pcd_in_camera = mercury.geometry.pointcloud_from_depth(
+    pcd_in_camera = reorientbot.geometry.pointcloud_from_depth(
         depth, fx=K[0, 0], fy=K[1, 1], cx=K[0, 2], cy=K[1, 2]
     )
-    normals_in_camera = mercury.geometry.normals_from_pointcloud(pcd_in_camera)
+    normals_in_camera = reorientbot.geometry.normals_from_pointcloud(pcd_in_camera)
 
     normals_on_obj = normals_in_camera.copy()
     normals_on_obj[~mask] = 0
@@ -135,19 +135,19 @@ def get_grasp_poses(env):
         normals_in_camera = normals_in_camera[keep]
 
     camera_to_world = np.hsplit(env.obs["camera_to_world"], [3])
-    pcd_in_world = mercury.geometry.transform_points(
+    pcd_in_world = reorientbot.geometry.transform_points(
         pcd_in_camera,
-        mercury.geometry.transformation_matrix(*camera_to_world),
+        reorientbot.geometry.transformation_matrix(*camera_to_world),
     )
     normals_in_world = (
-        mercury.geometry.transform_points(
+        reorientbot.geometry.transform_points(
             pcd_in_camera + normals_in_camera,
-            mercury.geometry.transformation_matrix(*camera_to_world),
+            reorientbot.geometry.transformation_matrix(*camera_to_world),
         )
         - pcd_in_world
     )
 
-    quaternion_in_world = mercury.geometry.quaternion_from_vec2vec(
+    quaternion_in_world = reorientbot.geometry.quaternion_from_vec2vec(
         [0, 0, 1], normals_in_world
     )
 
@@ -165,7 +165,7 @@ def plan_reorient(env, grasp_pose, reorient_pose):
 
     result = {}
 
-    obj_af = mercury.pybullet.duplicate(
+    obj_af = reorientbot.pybullet.duplicate(
         env.fg_object_id,
         collision=False,
         rgba_color=(1, 1, 1, 0.5),
@@ -192,7 +192,7 @@ def plan_reorient(env, grasp_pose, reorient_pose):
     for dg in np.random.uniform(-np.pi, np.pi, size=(8,)):
         env.ri.attachments = []
 
-        c = mercury.geometry.Coordinate(*ee_af_to_world)
+        c = reorientbot.geometry.Coordinate(*ee_af_to_world)
         c.rotate([0, 0, dg])
         j = env.ri.solve_ik(
             c.pose, n_init=5, validate=True, obstacles=bg_object_ids
@@ -220,7 +220,7 @@ def plan_reorient(env, grasp_pose, reorient_pose):
         if j is not None and env.ri.validatej(
             j,
             obstacles=bg_object_ids,
-            min_distances=mercury.utils.StaticDict(-0.02),
+            min_distances=reorientbot.utils.StaticDict(-0.02),
         ):
             result["j_place"] = j
             break
@@ -242,11 +242,11 @@ def plan_reorient(env, grasp_pose, reorient_pose):
     ]
     env.ri.attachments = result["attachments"]
 
-    c = mercury.geometry.Coordinate(*ee_af_to_world)
+    c = reorientbot.geometry.Coordinate(*ee_af_to_world)
     c.translate([0, 0, 0.2], wrt="world")
     j = env.ri.solve_ik(c.pose, rthre=np.deg2rad(30), thre=0.05)
     if j is None:
-        c = mercury.geometry.Coordinate(*ee_af_to_world)
+        c = reorientbot.geometry.Coordinate(*ee_af_to_world)
         c.translate([0, 0, -0.2], wrt="local")
         j = env.ri.solve_ik(c.pose, rthre=np.deg2rad(30), thre=0.05)
     if j is None:
@@ -257,7 +257,7 @@ def plan_reorient(env, grasp_pose, reorient_pose):
         result["j_post_grasp"] = j
 
     env.ri.setj(result["j_place"])
-    c = mercury.geometry.Coordinate(*env.ri.get_pose("tipLink"))
+    c = reorientbot.geometry.Coordinate(*env.ri.get_pose("tipLink"))
     c.translate([0, 0, 0.1], wrt="world")
     j = env.ri.solve_ik(c.pose, n_init=1, rthre=np.deg2rad(30), thre=0.01)
     if j is None:
@@ -270,7 +270,7 @@ def plan_reorient(env, grasp_pose, reorient_pose):
     # solve js_grasp
     env.ri.setj(result["j_grasp"])
     env.ri.attachments = []
-    c = mercury.geometry.Coordinate(*ee_af_to_world)
+    c = reorientbot.geometry.Coordinate(*ee_af_to_world)
     js = []
     for _ in range(5):
         c.translate([0, 0, -0.02])
@@ -315,7 +315,7 @@ def plan_reorient(env, grasp_pose, reorient_pose):
     js = env.ri.planj(
         result["j_pre_place"],
         obstacles=obstacles,
-        min_distances_start_goal=mercury.utils.StaticDict(-0.01),
+        min_distances_start_goal=reorientbot.utils.StaticDict(-0.01),
     )
     if js is None:
         logger.warning("js_place is not found")
@@ -329,7 +329,7 @@ def plan_reorient(env, grasp_pose, reorient_pose):
     env.ri.attachments[0].assign()
     env.ri.attachments = []
 
-    c = mercury.geometry.Coordinate(*env.ri.get_pose("tipLink"))
+    c = reorientbot.geometry.Coordinate(*env.ri.get_pose("tipLink"))
     c.translate([0, 0, -0.1], wrt="local")
     c.translate([0, 0, 0.2], wrt="world")
     j = env.ri.solve_ik(c.pose, rotation_axis=False, n_init=1)
@@ -414,7 +414,7 @@ def get_static_reorient_poses(env):
     # XY, ABG validation
     poses = []
     for (x, y), (a, b, g) in itertools.product(XY, ABG):
-        c = mercury.geometry.Coordinate(
+        c = reorientbot.geometry.Coordinate(
             position=(x, y, 0),
             quaternion=_utils.get_canonical_quaternion(
                 class_id=_utils.get_class_id(env.fg_object_id)
@@ -435,19 +435,19 @@ def get_static_reorient_poses(env):
         c.position[2] += 0.001  # slight offset
         pp.set_pose(env.fg_object_id, c.pose)
 
-        if mercury.pybullet.is_colliding(env.fg_object_id):
+        if reorientbot.pybullet.is_colliding(env.fg_object_id):
             continue
 
-        point, point_p_normal = mercury.geometry.transform_points(
+        point, point_p_normal = reorientbot.geometry.transform_points(
             [point_in_obj, point_in_obj + normal_in_obj],
-            mercury.geometry.transformation_matrix(*c.pose),
+            reorientbot.geometry.transformation_matrix(*c.pose),
         )
         normal = point_p_normal - point
         angle = np.arccos(np.dot([0, 0, 1], normal))
         assert angle >= 0
 
         angle = np.arccos(
-            np.dot([-1, 0], mercury.geometry.normalize_vec(normal[:2]))
+            np.dot([-1, 0], reorientbot.geometry.normalize_vec(normal[:2]))
         )
         assert angle >= 0
         if angle > np.deg2rad(45):
@@ -481,7 +481,7 @@ def plan_place(env, target_grasp_poses):
         for dg in np.random.uniform(-np.pi, np.pi, size=(6,)):
             result = {}
 
-            c = mercury.geometry.Coordinate(*ee_to_world)
+            c = reorientbot.geometry.Coordinate(*ee_to_world)
             c.rotate([0, 0, dg])
             j = env.ri.solve_ik(c.pose)
             if j is None or not env.ri.validatej(j, obstacles=env.bg_objects):
@@ -495,7 +495,7 @@ def plan_place(env, target_grasp_poses):
             env.ri.setj(result["j_grasp"])
             ee_to_world = c.pose
 
-            c = mercury.geometry.Coordinate(*ee_to_world)
+            c = reorientbot.geometry.Coordinate(*ee_to_world)
             c.translate([0, 0, -0.1])
             j = env.ri.solve_ik(c.pose)
             if j is None or not env.ri.validatej(j, obstacles=env.bg_objects):
@@ -516,7 +516,7 @@ def plan_place(env, target_grasp_poses):
             ]
             env.ri.attachments = result["attachments"]
 
-            c = mercury.geometry.Coordinate(*ee_to_world)
+            c = reorientbot.geometry.Coordinate(*ee_to_world)
             c.translate([0, 0, -0.2], wrt="local")
             j = env.ri.solve_ik(c.pose)
             if j is None or not env.ri.validatej(j, obstacles=env.bg_objects):
@@ -590,7 +590,7 @@ def plan_place(env, target_grasp_poses):
         js = env.ri.planj(
             result["j_pre_grasp"],
             obstacles=env.bg_objects + env.object_ids,
-            min_distances=mercury.utils.StaticDict(-0.01),
+            min_distances=reorientbot.utils.StaticDict(-0.01),
         )
         if js is None:
             logger.warning("js_pre_grasp is not found")
@@ -634,7 +634,7 @@ def plan_place(env, target_grasp_poses):
             if j is None or not env.ri.validatej(
                 j,
                 obstacles=obstacles,
-                min_distances=mercury.utils.StaticDict(-0.01),
+                min_distances=reorientbot.utils.StaticDict(-0.01),
             ):
                 break
             env.ri.setj(j)

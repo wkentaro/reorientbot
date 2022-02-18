@@ -8,11 +8,11 @@ import numpy as np
 import pybullet as p
 import pybullet_planning as pp
 
-import mercury
+import reorientbot
 
 
 def get_camera_pose(camera_config):
-    c_cam_to_ee = mercury.geometry.Coordinate()
+    c_cam_to_ee = reorientbot.geometry.Coordinate()
 
     if camera_config == 0:
         c_cam_to_ee.translate([0, -0.05, -0.1])
@@ -41,7 +41,7 @@ class StepSimulation:
         p.stepSimulation()
         self.ri.step_simulation()
         if self._video_dir and self.i % (8 * self._retime) == 0:
-            debug_rgb, _, _ = mercury.pybullet.get_debug_visualizer_image()
+            debug_rgb, _, _ = reorientbot.pybullet.get_debug_visualizer_image()
 
             rgb, depth, _ = self.ri.get_camera_image()
             depth[(depth < 0.3) | (depth > 2)] = np.nan
@@ -83,7 +83,7 @@ def place_to_regrasp(
         with pp.LockRenderer(), pp.WorldSaver():
             quaternion = get_canonical_quaternion(class_id=class_id)
             if i >= n_trial:
-                c = mercury.geometry.Coordinate(quaternion=quaternion)
+                c = reorientbot.geometry.Coordinate(quaternion=quaternion)
                 euler = [
                     [np.deg2rad(90), 0, 0],
                     [np.deg2rad(-90), 0, 0],
@@ -97,17 +97,17 @@ def place_to_regrasp(
             aabb = pp.get_aabb(object_id)
             position = np.random.uniform(*regrasp_aabb)
             position[2] -= aabb[0][2]
-            c = mercury.geometry.Coordinate(position, quaternion)
+            c = reorientbot.geometry.Coordinate(position, quaternion)
 
         regrasp_pose = c.pose  # obj_af_to_world
 
         with ri.enabling_attachments():
             obj_to_world = ri.get_pose("attachment_link0")
 
-            move_target_to_world = mercury.geometry.Coordinate(*obj_to_world)
+            move_target_to_world = reorientbot.geometry.Coordinate(*obj_to_world)
             move_target_to_world.transform(
                 np.linalg.inv(
-                    mercury.geometry.quaternion_matrix(regrasp_pose[1])
+                    reorientbot.geometry.quaternion_matrix(regrasp_pose[1])
                 ),
                 wrt="local",
             )
@@ -139,7 +139,7 @@ def place_to_regrasp(
         with pp.LockRenderer():
             with pp.WorldSaver():
                 ri.setj(path[-1])
-                c = mercury.geometry.Coordinate(*ri.get_pose("tipLink"))
+                c = reorientbot.geometry.Coordinate(*ri.get_pose("tipLink"))
                 c.translate([0, 0, -0.05])
                 j = ri.solve_ik(c.pose, rotation_axis=None)
                 path2 = ri.planj(j)
@@ -191,7 +191,7 @@ def get_place_pose(object_id, bin_aabb_min, bin_aabb_max):
                     for y in np.linspace(position_lt[1], position_rb[1]):
                         position = (x, y, z)
                         pp.set_pose(object_id, (position, quaternion))
-                        if not mercury.pybullet.is_colliding(object_id):
+                        if not reorientbot.pybullet.is_colliding(object_id):
                             break
                     else:
                         continue
@@ -234,7 +234,7 @@ virtual_objects = []
 def place(
     ri, object_id, place_pose, path, bg_object_ids, object_ids, step_simulation
 ):
-    obj_v = mercury.pybullet.duplicate(
+    obj_v = reorientbot.pybullet.duplicate(
         object_id,
         collision=False,
         rgba_color=[0, 1, 0, 0.5],
@@ -256,7 +256,7 @@ def place(
     for _ in range(240):
         step_simulation()
 
-    c = mercury.geometry.Coordinate(*ri.get_pose("tipLink"))
+    c = reorientbot.geometry.Coordinate(*ri.get_pose("tipLink"))
     c.translate([0, 0, -0.05])
     j = ri.solve_ik(c.pose, rotation_axis=None)
     for _ in ri.movej(j, speed=0.005):
@@ -282,7 +282,7 @@ def place(
 def get_class_id(object_id):
     visual_shape_data = p.getVisualShapeData(object_id)
     class_name = visual_shape_data[0][4].decode().split("/")[-2]
-    class_id = mercury.datasets.ycb.class_names.tolist().index(class_name)
+    class_id = reorientbot.datasets.ycb.class_names.tolist().index(class_name)
     return class_id
 
 
@@ -295,7 +295,7 @@ def correct(
     step_simulation,
     auc_threshold=0.5,
 ):
-    c = mercury.geometry.Coordinate(*ri.get_pose("tipLink"))
+    c = reorientbot.geometry.Coordinate(*ri.get_pose("tipLink"))
     c.position = place_pose[0]
     c.position[2] = 0.7
     j = ri.solve_ik(
@@ -314,21 +314,21 @@ def correct(
         obj_to_world = pp.get_pose(object_id)
 
         class_id = get_class_id(object_id)
-        pcd_file = mercury.datasets.ycb.get_pcd_file(class_id=class_id)
+        pcd_file = reorientbot.datasets.ycb.get_pcd_file(class_id=class_id)
         pcd = np.loadtxt(pcd_file)
-        pcd_target = mercury.geometry.transform_points(
-            pcd, mercury.geometry.transformation_matrix(*place_pose)
+        pcd_target = reorientbot.geometry.transform_points(
+            pcd, reorientbot.geometry.transformation_matrix(*place_pose)
         )
-        pcd_source = mercury.geometry.transform_points(
-            pcd, mercury.geometry.transformation_matrix(*obj_to_world)
+        pcd_source = reorientbot.geometry.transform_points(
+            pcd, reorientbot.geometry.transformation_matrix(*obj_to_world)
         )
-        auc = mercury.geometry.average_distance_auc(pcd_target, pcd_source)
+        auc = reorientbot.geometry.average_distance_auc(pcd_target, pcd_source)
         if auc >= auc_threshold:
             logger.success(f"auc: {auc:.3f} >= {auc_threshold:.3f}")
             break
 
         while True:
-            with mercury.pybullet.stash_objects(virtual_objects):
+            with reorientbot.pybullet.stash_objects(virtual_objects):
                 _, depth, segm = ri.get_camera_image()
             for _ in ri.random_grasp(
                 depth=depth,
@@ -367,7 +367,7 @@ def correct(
         for _ in range(240):
             step_simulation()
 
-        c = mercury.geometry.Coordinate(*ri.get_pose("tipLink"))
+        c = reorientbot.geometry.Coordinate(*ri.get_pose("tipLink"))
         c.translate([0, 0, -0.05])
         j = ri.solve_ik(c.pose, rotation_axis=None)
         for _ in ri.movej(j):
@@ -436,7 +436,7 @@ def plot_time_table(time_table):
 
 
 def get_canonical_quaternion(class_id):
-    c = mercury.geometry.Coordinate()
+    c = reorientbot.geometry.Coordinate()
     if class_id == 2:
         c.rotate([0, 0, np.deg2rad(0)])
     elif class_id == 3:
@@ -476,19 +476,19 @@ def load_pile(base_pose, pkl_file, mass=None):
     for class_id, position, quaternion in zip(
         data["class_id"], data["position"], data["quaternion"]
     ):
-        coord = mercury.geometry.Coordinate(
+        coord = reorientbot.geometry.Coordinate(
             position=position,
             quaternion=quaternion,
         )
         coord.transform(
-            mercury.geometry.transformation_matrix(*base_pose), wrt="world"
+            reorientbot.geometry.transformation_matrix(*base_pose), wrt="world"
         )
 
-        visual_file = mercury.datasets.ycb.get_visual_file(class_id)
-        collision_file = mercury.pybullet.get_collision_file(visual_file)
-        mass_actual = mercury.datasets.ycb.masses[class_id]
+        visual_file = reorientbot.datasets.ycb.get_visual_file(class_id)
+        collision_file = reorientbot.pybullet.get_collision_file(visual_file)
+        mass_actual = reorientbot.datasets.ycb.masses[class_id]
         with pp.LockRenderer():
-            object_id = mercury.pybullet.create_mesh_body(
+            object_id = reorientbot.pybullet.create_mesh_body(
                 visual_file=visual_file,
                 collision_file=collision_file,
                 mass=mass_actual if mass is None else mass,

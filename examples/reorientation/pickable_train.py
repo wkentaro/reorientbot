@@ -13,7 +13,7 @@ import torch
 from torch.utils.tensorboard import SummaryWriter
 import tqdm
 
-import mercury
+import reorientbot
 
 
 home = path.Path("~").expanduser()
@@ -122,7 +122,7 @@ class Dataset(torch.utils.data.Dataset):
     def __init__(self, split, robot_model):
         self._split = split
 
-        root_dir = home / f"data/mercury/reorientation/pickable/{robot_model}"
+        root_dir = home / f"data/reorientbot/reorientation/pickable/{robot_model}"
         self._files = {"train": [], "val": []}
         for i in range(0, 4000):
             seed_dir = root_dir / f"s-{i:08d}"
@@ -164,8 +164,8 @@ class Dataset(torch.utils.data.Dataset):
 
         ee_to_obj = np.hsplit(data["grasp_pose_wrt_obj"], [3])
         grasp_point_start = ee_to_obj[0]
-        grasp_point_end = mercury.geometry.transform_points(
-            [[0, 0, 1]], mercury.geometry.transformation_matrix(*ee_to_obj)
+        grasp_point_end = reorientbot.geometry.transform_points(
+            [[0, 0, 1]], reorientbot.geometry.transformation_matrix(*ee_to_obj)
         )[0]
         grasp_pose = np.hstack([grasp_point_start, grasp_point_end])
 
@@ -300,7 +300,7 @@ def main():
     )
     log_dir.makedirs_p()
 
-    git_hash = mercury.utils.git_hash(cwd=here, log_dir=log_dir)
+    git_hash = reorientbot.utils.git_hash(cwd=here, log_dir=log_dir)
     with open(log_dir / "params.json", "w") as f:
         json.dump({"git_hash": git_hash}, f)
 

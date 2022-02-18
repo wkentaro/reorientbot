@@ -8,7 +8,7 @@ import path
 import pybullet as p
 import pybullet_planning as pp
 
-import mercury
+import reorientbot
 
 from . import _utils
 from ._get_heightmap import get_heightmap
@@ -29,7 +29,7 @@ class Env:
 
     TABLE_OFFSET = 0.025
 
-    PILES_DIR = home / "data/mercury/pile_generation"
+    PILES_DIR = home / "data/reorientbot/pile_generation"
     PILE_TRAIN_IDS = np.arange(0, 1000)
     PILE_EVAL_IDS = np.arange(1000, 1200)
     PILE_POSITION = np.array([0.5, 0, TABLE_OFFSET])
@@ -81,7 +81,7 @@ class Env:
             self.plane = pp.load_pybullet("plane.urdf")
             pp.set_pose(self.plane, ([0, 0, self.TABLE_OFFSET], [0, 0, 0, 1]))
 
-        self.ri = mercury.pybullet.PandaRobotInterface(
+        self.ri = reorientbot.pybullet.PandaRobotInterface(
             suction_max_force=None,
             suction_surface_threshold=np.inf,
             suction_surface_alignment=False,
@@ -91,7 +91,7 @@ class Env:
         if self._robot_model == "franka_panda/panda_drl":
             pose = ([-0.065, 0.058, -0.062], [0.003, -0.032, -0.009, 0.999])
         elif self._robot_model == "franka_panda/panda_suction":
-            c = mercury.geometry.Coordinate()
+            c = reorientbot.geometry.Coordinate()
             c.translate([0, -0.1, -0.1])
             pose = c.pose
         else:
@@ -139,14 +139,14 @@ class Env:
 
                 position += self.PILE_POSITION
 
-                visual_file = mercury.datasets.ycb.get_visual_file(
+                visual_file = reorientbot.datasets.ycb.get_visual_file(
                     class_id=class_id
                 )
-                collision_file = mercury.pybullet.get_collision_file(
+                collision_file = reorientbot.pybullet.get_collision_file(
                     visual_file
                 )
 
-                class_name = mercury.datasets.ycb.class_names[class_id]
+                class_name = reorientbot.datasets.ycb.class_names[class_id]
                 visibility = data["visibility"][i]
                 logger.info(
                     f"class_id={class_id:02d}, "
@@ -155,10 +155,10 @@ class Env:
                 )
 
                 with pp.LockRenderer():
-                    object_id = mercury.pybullet.create_mesh_body(
+                    object_id = reorientbot.pybullet.create_mesh_body(
                         visual_file=visual_file,
                         collision_file=collision_file,
-                        mass=mercury.datasets.ycb.masses[class_id],
+                        mass=reorientbot.datasets.ycb.masses[class_id],
                         position=position,
                         quaternion=quaternion,
                     )
@@ -197,7 +197,7 @@ class Env:
                 face=self._face,
             )
             self.LAST_PRE_PLACE_POSE = self.PLACE_POSE
-            c = mercury.geometry.Coordinate(*self.PLACE_POSE)
+            c = reorientbot.geometry.Coordinate(*self.PLACE_POSE)
             c.translate([0, -0.3, 0], wrt="world")
             self.PRE_PLACE_POSE = c.pose
 
@@ -217,7 +217,7 @@ class Env:
         self.ri.setj(self.ri.homej)
         j = None
         while j is None:
-            c = mercury.geometry.Coordinate(*self.ri.get_pose("camera_link"))
+            c = reorientbot.geometry.Coordinate(*self.ri.get_pose("camera_link"))
             c.position = self.CAMERA_POSITION
             j = self.ri.solve_ik(
                 c.pose, move_target=self.ri.robot_model.camera_link
@@ -237,12 +237,12 @@ class Env:
         camera_to_world = self.ri.get_pose("camera_link")
 
         K = self.ri.get_opengl_intrinsic_matrix()
-        pcd_in_camera = mercury.geometry.pointcloud_from_depth(
+        pcd_in_camera = reorientbot.geometry.pointcloud_from_depth(
             depth, fx=K[0, 0], fy=K[1, 1], cx=K[0, 2], cy=K[1, 2]
         )
-        pcd_in_world = mercury.geometry.transform_points(
+        pcd_in_world = reorientbot.geometry.transform_points(
             pcd_in_camera,
-            mercury.geometry.transformation_matrix(*camera_to_world),
+            reorientbot.geometry.transformation_matrix(*camera_to_world),
         )
 
         aabb = np.array(

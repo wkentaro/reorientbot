@@ -10,7 +10,7 @@ import path
 import pybullet as p
 import pybullet_planning as pp
 
-import mercury
+import reorientbot
 
 import _utils
 
@@ -26,7 +26,7 @@ def main():
     parser.add_argument("--nogui", action="store_true", help="no gui")
     args = parser.parse_args()
 
-    export_dir = home / "data/mercury/pile_generation"
+    export_dir = home / "data/reorientbot/pile_generation"
     export_file = export_dir / f"{args.seed:08d}.pkl"
 
     if export_file.exists():
@@ -43,10 +43,10 @@ def main():
     )
 
     # near orthographic rendering
-    T_camera_to_world = mercury.geometry.look_at(
+    T_camera_to_world = reorientbot.geometry.look_at(
         eye=[0, 0, 10000], target=[0, 0, 0]
     )
-    rgb, depth, segm = mercury.pybullet.get_camera_image(
+    rgb, depth, segm = reorientbot.pybullet.get_camera_image(
         T_camera_to_world,
         fovy=np.deg2rad(0.005),
         height=480,
@@ -59,9 +59,9 @@ def main():
     for object_id in object_ids:
         stashed_object_ids = object_ids.copy()
         stashed_object_ids.remove(object_id)
-        with mercury.pybullet.stash_objects(stashed_object_ids):
+        with reorientbot.pybullet.stash_objects(stashed_object_ids):
             mask_full = (
-                mercury.pybullet.get_camera_image(
+                reorientbot.pybullet.get_camera_image(
                     T_camera_to_world,
                     fovy=np.deg2rad(0.005),
                     height=480,

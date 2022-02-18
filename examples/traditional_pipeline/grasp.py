@@ -7,7 +7,7 @@ import numpy as np
 import path
 import pybullet_planning as pp
 
-import mercury
+import reorientbot
 
 import _utils
 
@@ -34,7 +34,7 @@ def main():
     pp.connect()
     plane = _utils.init_simulation(camera_distance=1.2)
 
-    ri = mercury.pybullet.PandaRobotInterface()
+    ri = reorientbot.pybullet.PandaRobotInterface()
     ri.add_camera(
         pose=_utils.get_camera_pose(args.camera_config),
         height=240,
@@ -44,7 +44,7 @@ def main():
     pile_pose = ([0, -0.5, 0], [0, 0, 0, 1])
     object_ids = _utils.load_pile(
         base_pose=pile_pose,
-        pkl_file=home / "data/mercury/pile_generation/00000001.pkl",
+        pkl_file=home / "data/reorientbot/pile_generation/00000001.pkl",
         mass=0.1,
     )
     for obj in object_ids:
@@ -74,17 +74,17 @@ def main():
     step_simulation()
 
     if args.pause:
-        mercury.pybullet.pause()
+        reorientbot.pybullet.pause()
 
     while True:
         ri.homej[0] = -np.pi / 2
         for _ in ri.movej(ri.homej):
             step_simulation()
 
-        c = mercury.geometry.Coordinate(*ri.get_pose("camera_link"))
+        c = reorientbot.geometry.Coordinate(*ri.get_pose("camera_link"))
         c.position = pile_pose[0]
         c.position[2] = 0.7
-        c.quaternion = mercury.geometry.quaternion_from_euler(
+        c.quaternion = reorientbot.geometry.quaternion_from_euler(
             [np.pi, 0, np.pi / 2]
         )
         j = ri.solve_ik(c.pose, move_target=ri.robot_model.camera_link)

@@ -5,18 +5,18 @@ import pybullet as p
 import pybullet_planning as pp
 import trimesh
 
-import mercury
+import reorientbot
 
 
 def get_class_id(object_id):
     visual_shape_data = p.getVisualShapeData(object_id)
     class_name = visual_shape_data[0][4].decode().split("/")[-2]
-    class_id = mercury.datasets.ycb.class_names.tolist().index(class_name)
+    class_id = reorientbot.datasets.ycb.class_names.tolist().index(class_name)
     return class_id
 
 
 def get_canonical_quaternion(class_id):
-    c = mercury.geometry.Coordinate()
+    c = reorientbot.geometry.Coordinate()
     if class_id == 2:
         c.rotate([0, 0, np.deg2rad(0)])
     elif class_id == 3:
@@ -40,13 +40,13 @@ cached_mesh = {}
 def get_aabb(obj):
     class_id = get_class_id(obj)
     if class_id not in cached_mesh:
-        visual_file = mercury.datasets.ycb.get_visual_file(class_id=class_id)
+        visual_file = reorientbot.datasets.ycb.get_visual_file(class_id=class_id)
         cached_mesh[class_id] = trimesh.load_mesh(visual_file)
 
     visual = cached_mesh[class_id].copy()
     obj_to_world = pp.get_pose(obj)
     visual.apply_transform(
-        mercury.geometry.transformation_matrix(*obj_to_world)
+        reorientbot.geometry.transformation_matrix(*obj_to_world)
     )
     return visual.bounds
 
@@ -133,9 +133,9 @@ def init_place_scene(env, class_id, random_state, face="front"):
     place_aabb += place_aabb_offset
     pp.draw_aabb(place_aabb, width=5, color=(1, 0, 0, 1), parent=shelf)
 
-    visual_file = mercury.datasets.ycb.get_visual_file(class_id=class_id)
+    visual_file = reorientbot.datasets.ycb.get_visual_file(class_id=class_id)
 
-    c = mercury.geometry.Coordinate(
+    c = reorientbot.geometry.Coordinate(
         quaternion=get_canonical_quaternion(class_id=class_id)
     )
     if face == "front":
@@ -151,9 +151,9 @@ def init_place_scene(env, class_id, random_state, face="front"):
     canonical_quaternion = c.quaternion
 
     # find the initial corner
-    obj = mercury.pybullet.create_mesh_body(
+    obj = reorientbot.pybullet.create_mesh_body(
         visual_file=visual_file,
-        collision_file=mercury.pybullet.get_collision_file(visual_file),
+        collision_file=reorientbot.pybullet.get_collision_file(visual_file),
         quaternion=canonical_quaternion,
     )
     aabb_min, aabb_max = get_aabb(obj)
@@ -165,7 +165,7 @@ def init_place_scene(env, class_id, random_state, face="front"):
         position = np.array([x, y, z]) * place_aabb_extents + place_aabb_offset
         obj_to_world = (position - [0, 0, aabb_min[2]], canonical_quaternion)
         pp.set_pose(obj, obj_to_world)
-        if not mercury.pybullet.is_colliding(
+        if not reorientbot.pybullet.is_colliding(
             obj, [shelf]
         ) and pp.aabb_contains_aabb(get_aabb(obj), place_aabb):
             pp.remove_body(obj)
@@ -177,13 +177,13 @@ def init_place_scene(env, class_id, random_state, face="front"):
     objects = []
     for iy in itertools.count():
         for ix in itertools.count():
-            obj = mercury.pybullet.create_mesh_body(
+            obj = reorientbot.pybullet.create_mesh_body(
                 visual_file=visual_file,
-                collision_file=mercury.pybullet.get_collision_file(
+                collision_file=reorientbot.pybullet.get_collision_file(
                     visual_file
                 ),
             )
-            c = mercury.geometry.Coordinate(*obj_to_world)
+            c = reorientbot.geometry.Coordinate(*obj_to_world)
             c.translate(
                 [aabb_extents[0] * ix, aabb_extents[1] * iy, 0], wrt="world"
             )
@@ -204,7 +204,7 @@ def init_place_scene(env, class_id, random_state, face="front"):
     objects = objects[: stop_index + 1]
 
     # apply transform
-    c = mercury.geometry.Coordinate()
+    c = reorientbot.geometry.Coordinate()
     c.rotate([0, 0, np.deg2rad(-90)])
     c.translate([0, 0.7, env.TABLE_OFFSET], wrt="world")
     shelf_to_world = c.pose
@@ -215,7 +215,7 @@ def init_place_scene(env, class_id, random_state, face="front"):
 
     place_pose = pp.get_pose(objects[-1])
     pp.remove_body(objects[-1])
-    mercury.pybullet.create_mesh_body(
+    reorientbot.pybullet.create_mesh_body(
         visual_file=visual_file,
         position=place_pose[0],
         quaternion=place_pose[1],
@@ -224,7 +224,7 @@ def init_place_scene(env, class_id, random_state, face="front"):
         mesh_scale=[0.99, 0.99, 0.99],
     )
     mesh = trimesh.load_mesh(visual_file)
-    mesh.apply_transform(mercury.geometry.transformation_matrix(*place_pose))
+    mesh.apply_transform(reorientbot.geometry.transformation_matrix(*place_pose))
     aabb = (mesh.vertices.min(axis=0), mesh.vertices.max(axis=0))
     pp.draw_aabb(aabb, width=2, color=(0, 1, 0, 1))
 

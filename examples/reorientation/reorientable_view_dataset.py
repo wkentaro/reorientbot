@@ -9,7 +9,7 @@ import numpy as np
 import path
 import pybullet_planning as pp
 
-import mercury
+import reorientbot
 
 
 home = path.Path("~").expanduser()
@@ -34,7 +34,7 @@ def main():
     pp.set_camera_pose([1, 0, 1])
 
     root_dir = (
-        home / f"data/mercury/reorientation/reorientable/{args.robot_model}"
+        home / f"data/reorientbot/reorientation/reorientable/{args.robot_model}"
     )
     pkl_files = sorted(root_dir.walk("*.pkl"))
 
@@ -42,7 +42,7 @@ def main():
         pp.reset_simulation()
         pp.enable_gravity()
         pp.load_pybullet("plane.urdf")
-        mercury.pybullet.PandaRobotInterface()
+        reorientbot.pybullet.PandaRobotInterface()
 
         pkl_file = np.random.choice(pkl_files)
         with open(pkl_file, "rb") as f:
@@ -58,17 +58,17 @@ def main():
             data["object_classes"],
             data["object_poses"],
         ):
-            visual_file = mercury.datasets.ycb.get_visual_file(
+            visual_file = reorientbot.datasets.ycb.get_visual_file(
                 class_id=object_class
             )
-            obj = mercury.pybullet.create_mesh_body(
+            obj = reorientbot.pybullet.create_mesh_body(
                 visual_file=visual_file,
-                collision_file=mercury.pybullet.get_collision_file(
+                collision_file=reorientbot.pybullet.get_collision_file(
                     visual_file
                 ),
                 position=object_pose[:3],
                 quaternion=object_pose[3:],
-                mass=mercury.datasets.ycb.masses[object_class],
+                mass=reorientbot.datasets.ycb.masses[object_class],
             )
             if object_fg_flag:
                 target_obj = obj
@@ -86,7 +86,7 @@ def main():
             }
         )
 
-        mercury.pybullet.duplicate(
+        reorientbot.pybullet.duplicate(
             target_obj,
             collision=False,
             position=obj_af_to_world[0],
@@ -95,7 +95,7 @@ def main():
         )
 
         pp.draw_pose(ee_to_obj, parent=target_obj, length=0.05, width=3)
-        mercury.pybullet.pause()
+        reorientbot.pybullet.pause()
 
 
 if __name__ == "__main__":

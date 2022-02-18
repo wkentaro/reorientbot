@@ -2,7 +2,7 @@ import numpy as np
 import pybullet as p
 import pybullet_planning as pp
 
-import mercury
+import reorientbot
 
 
 def init_simulation(camera_distance=1.5):
@@ -28,7 +28,7 @@ def create_pile(class_ids, num_instances, random_state=None):
     y = (-0.2, 0.2)
     z = 0.5
 
-    bin_unique_id = mercury.pybullet.create_bin(
+    bin_unique_id = reorientbot.pybullet.create_bin(
         X=x[1] - x[0],
         Y=y[1] - y[0],
         Z=z / 2,
@@ -43,14 +43,14 @@ def create_pile(class_ids, num_instances, random_state=None):
         quaternion = random_state.random((4,))
         quaternion /= np.linalg.norm(quaternion)
 
-        coord = mercury.geometry.Coordinate(position, quaternion=quaternion)
+        coord = reorientbot.geometry.Coordinate(position, quaternion=quaternion)
 
-        visual_file = mercury.datasets.ycb.get_visual_file(class_id=class_id)
-        collision_file = mercury.pybullet.get_collision_file(visual_file)
-        unique_id = mercury.pybullet.create_mesh_body(
+        visual_file = reorientbot.datasets.ycb.get_visual_file(class_id=class_id)
+        collision_file = reorientbot.pybullet.get_collision_file(visual_file)
+        unique_id = reorientbot.pybullet.create_mesh_body(
             visual_file=visual_file,
             collision_file=collision_file,
-            mass=mercury.datasets.ycb.masses[class_id],
+            mass=reorientbot.datasets.ycb.masses[class_id],
             position=coord.position,
             quaternion=coord.quaternion,
         )
@@ -74,14 +74,14 @@ def create_pile(class_ids, num_instances, random_state=None):
             unique_ids.append(unique_id)
 
     for _ in range(250):
-        coord = mercury.geometry.Coordinate(*pp.get_pose(bin_unique_id))
+        coord = reorientbot.geometry.Coordinate(*pp.get_pose(bin_unique_id))
         coord.translate([0, 0, -0.001], wrt="world")
         pp.set_pose(bin_unique_id, coord.pose)
         for _ in range(100):
             p.stepSimulation()
             if all(
                 np.linalg.norm(p.getBaseVelocity(unique_id)[0]) < 1e-12
-                for unique_id in mercury.pybullet.get_body_unique_ids()
+                for unique_id in reorientbot.pybullet.get_body_unique_ids()
             ):
                 break
     p.removeBody(bin_unique_id)

@@ -5,10 +5,10 @@ import argparse
 import numpy as np
 import pybullet_planning as pp
 
-import mercury
+import reorientbot
 
-from mercury.examples.reorientation._env import Env
-from mercury.examples.reorientation import _reorient
+from reorientbot.examples.reorientation._env import Env
+from reorientbot.examples.reorientation import _reorient
 
 
 def main():
@@ -40,7 +40,7 @@ def main():
     indices = np.random.permutation(pcd_in_obj.shape[0])[:20]
     pcd_in_obj = pcd_in_obj[indices]
     normals_in_obj = normals_in_obj[indices]
-    quaternion_in_obj = mercury.geometry.quaternion_from_vec2vec(
+    quaternion_in_obj = reorientbot.geometry.quaternion_from_vec2vec(
         [0, 0, -1], normals_in_obj
     )
     grasp_poses = np.hstack([pcd_in_obj, quaternion_in_obj])  # in obj
@@ -48,7 +48,7 @@ def main():
     for grasp_pose in grasp_poses:
         pp.draw_pose(np.hsplit(grasp_pose, [3]), parent=env.fg_object_id)
 
-    mercury.pybullet.pause()
+    reorientbot.pybullet.pause()
 
 
 if __name__ == "__main__":

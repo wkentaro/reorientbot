@@ -9,15 +9,15 @@ import path
 import pybullet_planning as pp
 import torch
 
-import mercury
+import reorientbot
 
-from mercury.examples.reorientation._env import Env
-from mercury.examples.reorientation import _reorient
-from mercury.examples.reorientation import _utils
-from mercury.examples.reorientation.pickable_reorient_poses import (
+from reorientbot.examples.reorientation._env import Env
+from reorientbot.examples.reorientation import _reorient
+from reorientbot.examples.reorientation import _utils
+from reorientbot.examples.reorientation.pickable_reorient_poses import (
     get_reorient_poses,  # NOQA
 )
-from mercury.examples.reorientation.pickable_train import Model
+from reorientbot.examples.reorientation.pickable_train import Model
 
 
 here = path.Path(__file__).abspath().parent
@@ -78,7 +78,7 @@ def get_goal_oriented_reorient_poses(env):
 
     pcd_in_obj = pcd_in_obj[indices]
     normals_in_obj = normals_in_obj[indices]
-    quaternion_in_obj = mercury.geometry.quaternion_from_vec2vec(
+    quaternion_in_obj = reorientbot.geometry.quaternion_from_vec2vec(
         [0, 0, -1], normals_in_obj
     )
     grasp_poses = np.hstack([pcd_in_obj, quaternion_in_obj])
@@ -88,8 +88,8 @@ def get_goal_oriented_reorient_poses(env):
     for grasp_pose in grasp_poses:
         ee_to_obj = np.hsplit(grasp_pose, [3])
         grasp_point_start = ee_to_obj[0]
-        grasp_point_end = mercury.geometry.transform_points(
-            [[0, 0, 1]], mercury.geometry.transformation_matrix(*ee_to_obj)
+        grasp_point_end = reorientbot.geometry.transform_points(
+            [[0, 0, 1]], reorientbot.geometry.transformation_matrix(*ee_to_obj)
         )[0]
         grasp_points.append(np.hstack([grasp_point_start, grasp_point_end]))
 
@@ -165,7 +165,7 @@ def main():
 
     if args.visualize:
         for reorient_pose in reorient_poses:
-            mercury.pybullet.duplicate(
+            reorientbot.pybullet.duplicate(
                 env.fg_object_id,
                 position=reorient_pose[:3],
                 quaternion=reorient_pose[3:],
