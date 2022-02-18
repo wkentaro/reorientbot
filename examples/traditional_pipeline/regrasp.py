@@ -45,7 +45,7 @@ def main():
     pile_pose = ([0, -0.5, 0], [0, 0, 0, 1])
     object_ids = _utils.load_pile(
         base_pose=pile_pose,
-        pkl_file=home / "data/reorientbot/pile_generation/00000001.pkl",
+        pkl_file=home / ".cache/reorientbot/pile_generation/00000001.pkl",
         mass=0.1,
     )
     for obj in object_ids:

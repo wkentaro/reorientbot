@@ -128,7 +128,7 @@ class Dataset(torch.utils.data.Dataset):
         self._split = split
 
         root_dir = (
-            home / f"data/reorientbot/reorientation/reorientable/{robot_model}"
+            home / f".cache/reorientbot/reorientation/reorientable/{robot_model}"
         )
         self._files = {"train": [], "val": []}
         for i in range(0, 4000):

@@ -38,7 +38,7 @@ def main():
     args = parser.parse_args()
 
     root_dir = (
-        home / f"data/reorientbot/reorientation/reorientable/{args.robot_model}"
+        home / f".cache/reorientbot/reorientation/reorientable/{args.robot_model}"
     )
 
     if (root_dir / f"s-{args.seed:08d}/00000099.pkl").exists():

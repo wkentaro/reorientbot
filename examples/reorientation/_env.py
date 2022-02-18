@@ -29,7 +29,7 @@ class Env:
 
     TABLE_OFFSET = 0.025
 
-    PILES_DIR = home / "data/reorientbot/pile_generation"
+    PILES_DIR = home / ".cache/reorientbot/pile_generation"
     PILE_TRAIN_IDS = np.arange(0, 1000)
     PILE_EVAL_IDS = np.arange(1000, 1200)
     PILE_POSITION = np.array([0.5, 0, TABLE_OFFSET])

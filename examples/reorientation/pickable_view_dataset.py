@@ -33,7 +33,7 @@ def main():
 
     pp.set_camera_pose([1, -1, 1])
 
-    root_dir = home / f"data/reorientbot/reorientation/pickable/{args.robot_model}"
+    root_dir = home / f".cache/reorientbot/reorientation/pickable/{args.robot_model}"
     pkl_files = sorted(root_dir.walk("*.pkl"))
 
     while True:
