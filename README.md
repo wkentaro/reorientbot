@@ -21,7 +21,7 @@
 </p>
 
 <div align="center">
-  <img src="docs/assets/img/teaser.jpg" width="80%">
+  <img src="docs/assets/img/teaser_horizontal.jpg" width="80%">
 </div>
 
 ---

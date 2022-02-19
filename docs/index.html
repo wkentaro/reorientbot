@@ -6,8 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>ReorientBot</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.0/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/main.css">
 
+    <!-- TODO -->
     <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=G&#45;J30ZNP92Q8"></script> -->
     <!-- <script> -->
     <!--   window.dataLayer = window.dataLayer || []; -->
@@ -20,8 +22,7 @@
     <meta property="og:url"           content="https://reorientbot.wkentaro.com/" />
     <meta property="og:type"          content="website" />
     <meta property="og:title"         content="ReorientBot: Learning Object Reorientation for Specific-Posed Placement" />
-    <meta property="og:description"   content="Robots need the capability of placing objects in arbitrary, specific poses to rearrange the world and achieve various valuable tasks. Object reorientation plays a crucial role in this as objects may not initially be oriented such that the robot can grasp and then immediately place them in a specific goal pose. In this work, we present a vision-based manipulation system, ReorientBot, which consists of 1) visual scene understanding with pose estimation and volumetric reconstruction using an onboard RGB-D camera; 2) learned waypoint selection for successful and efficient motion generation for reorientation; 3) traditional motion planning to generate a collision-free trajectory from the selected waypoints. We evaluate our method using the YCB objects in both simulation and the real world, achieving 93% overall success rate, 81% improvement in success rate, and 22% improvement in execution time compared to a heuristic approach. We demonstrate extended multi-object rearrangement showing the general capability of the system.
-" />
+    <meta property="og:description"   content="Robots need the capability of placing objects in arbitrary, specific poses to rearrange the world and achieve various valuable tasks. Object reorientation plays a crucial role in this as objects may not initially be oriented such that the robot can grasp and then immediately place them in a specific goal pose. In this work, we present a vision-based manipulation system, ReorientBot, which consists of 1) visual scene understanding with pose estimation and volumetric reconstruction using an onboard RGB-D camera; 2) learned waypoint selection for successful and efficient motion generation for reorientation; 3) traditional motion planning to generate a collision-free trajectory from the selected waypoints. We evaluate our method using the YCB objects in both simulation and the real world, achieving 93% overall success rate, 81% improvement in success rate, and 22% improvement in execution time compared to a heuristic approach. We demonstrate extended multi-object rearrangement showing the general capability of the system." />
     <meta property="og:image" content="" />
   </head>
   <body>
@@ -43,15 +44,146 @@
             </ul>
             <ul class="list-inline mt-4">
               <li class="list-inline-item">
-                <a href="https://arxiv.org/abs/2202.05832" target="_blank">Paper</a>
+                <a href="https://arxiv.org/abs/TODO" target="_blank">Paper</a>
               </li>
               <li class="list-inline-item ml-4">
-                <a href="https://youtu.be/ejjqiBqRRKo" target="_blank">Video</a>
+                <a href="https://youtu.be/YW6ry0n1tOQ" target="_blank">Video</a>
               </li>
               <li class="list-inline-item ml-4">
-                <a href="https://github.com/wkentaro/safepicking" target="_blank">Code</a>
+                <a href="https://github.com/wkentaro/reorientbot" target="_blank">Code</a>
               </li>
             </ul>
+          </div>
+
+          <div class="row mt-4">
+            <div class="col-md-7 offset-md-1">
+              <p>
+                Robots need the capability of placing objects in arbitrary, specific poses to rearrange the world and achieve various valuable tasks. Object reorientation plays a crucial role in this as objects may not initially be oriented such that the robot can grasp and then immediately place them in a specific goal pose.
+              </p>
+              <p>
+                In this paper, we present a vision-based manipulation system, <u>ReorientBot</u>, which consists of 1) visual scene understanding with pose estimation and volumetric reconstruction using an onboard RGB-D camera; 2) learned waypoint selection for successful and efficient motion generation for reorientation; 3) traditional motion planning to generate a collision-free trajectory from the selected waypoints. We evaluate our method using the YCB objects in both simulation and the real world, achieving 93% overall success rate, 81% improvement in success rate, and 22% improvement in execution time compared to a heuristic approach.
+              </p>
+            </div>
+            <div class="col-md-3 text-center">
+              <img src="assets/img/teaser_vertical.jpg" class="img-fluid" width="100%">
+            </div>
+          </div>
+
+          <div class="col-lg-10 offset-lg-1"><hr class="mt-4 mb-4"></div>
+          <div class="col-lg-10 offset-lg-1">
+            <h4 id="video">Overview Video (with audio)</h4>
+            <div align="center" class="row mt-4">
+              <div class="col-lg-8 offset-lg-2">
+                <div class="video-container">
+                  <iframe width="560" height="315" src="https://www.youtube.com/embed/YW6ry0n1tOQ" frameborder="0" allowfullscreen></iframe>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-10 offset-lg-1"><hr class="mt-4 mb-4"></div>
+          <div class="col-lg-10 offset-lg-1">
+            <h4 id="pipeline">System for specific-posed placement</h4>
+            <p>
+              ReorientBot is <u>a hybrid of learned components (<font color="#6699df" size="2px"><i class="bi bi-square-fill"></i></font>, <font color="#ffb54f" size=2px><i class="bi bi-square-fill"></i></font>) and traditional motion planning</u>, consisting of 1) vision-based 6D pose estimation and volumetric reconstruction; 2) motion waypoint generation; 3) trajectory generation with the waypoints.
+            </p>
+            <img src="assets/img/pipeline.jpg" class="img-fluid p-3">
+          </div>
+
+          <div class="col-lg-10 offset-lg-1"><hr class="mt-4 mb-4"></div>
+          <div class="col-lg-10 offset-lg-1">
+            <h4 id="training">Training in simulation</h4>
+            <p>
+              We train the learning models in physics simulation using the CAD models of known objects. Object pile configurations are randomly generated, for which the validity of grasp, reorientation, and regrasp are evaluated to generate training labels.
+            </p>
+            <div class="row">
+              <div class="col-8 offset-2 col-md-4 offset-md-2">
+                <img src="assets/img/pickable_eval.gif" class="img-fluid">
+              </div>
+              <div class="col-8 offset-2 col-md-4 offset-md-0 mt-3 mt-md-0">
+                <img src="assets/img/reorient_dynamic.gif" class="img-fluid">
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-10 offset-lg-1"><hr class="mt-4 mb-4"></div>
+          <div class="col-lg-10 offset-lg-1">
+            <h4>Baseline comparison for object reorientation</h4>
+            <p>
+              Our proposed method, ReorientBot, surpasses a heuristic method that uses object upright poses for reorientation, showing 93% overall success rate, 81% improvement in success rate, and 22% improvement in execution time.
+            </p>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="table-responsive">
+                  <table class="table table-sm table-bordered text-center mb-0" style="font-size: 13px;">
+                    <caption>Comparison of task completion. We use goal configurations that are not achievable without reorientation (146 tasks).</caption>
+                    <tr><th class="align-middle">Method</th><th>Success %<br/>(reorient)↑</th><th>Success %<br/>(place)</th><th>Success %<br/>(overall)</th></tr>
+                    <tr><td>Heuristic</td><td>71.9</td><td>81.0</td><td>58.2</td></tr>
+                    <tr class="table-active"><td>ReorientBot</td><td>97.9</td><td>95.1</td><td>93.2</td></tr>
+                  </table>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="table-responsive">
+                  <table class="table table-sm table-bordered text-center mb-0" style="font-size: 13px;">
+                    <caption>Comparison of timing. Reporting only when both methods succeeded to complete task; 38 tasks out of 146.</caption>
+                    <tr><th class="align-middle">Method</th><th>Planning<br/>time [s]↓</th><th>Execution<br/>time [s]↓</th><th>Trajectory<br/>length [rad]↓</th></tr>
+                    <tr><td>Heuristic</td><td>3.3</td><td>4.0</td><td>4.2</td></tr>
+                    <tr class="table-active"><td>ReorientBot</td><td>2.5</td><td>3.2</td><td>3.3</td></tr>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        <div class="col-lg-10 offset-lg-1"><hr class="mt-4 mb-4"></div>
+          <div class="col-lg-10 offset-lg-1">
+            <h4>Real-world experiments</h4>
+            <div class="row">
+              <div class="col-md-6 mt-4">
+                <h5>Shelf storing (three cracker boxes)</h5>
+                <a href="https://youtu.be/TODO">
+                  <img src="assets/img/shelf_storing.gif" class="img-fluid">
+                </a>
+              </div>
+              <div class="col-md-6 mt-4">
+                <h5>Box packing (three objects)</h5>
+                <a href="https://youtu.be/TODO">
+                  <img src="assets/img/box_packing.gif" class="img-fluid">
+                </a>
+              </div>
+            </div>
+            <div class="py-2"><hr></hr></div>
+            <div class="row">
+              <div class="col-md-12">
+                <h5>Large workspace (many objects)</h5>
+              </div>
+              <div class="col-md-6">
+                <a href="https://youtu.be/TODO">
+                  <img src="assets/img/multiview_01.gif" class="img-fluid">
+                </a>
+              </div>
+              <div class="col-md-6 mt-3 mt-md-0">
+                <a href="https://youtu.be/TODO">
+                  <img src="assets/img/multiview_03.gif" class="img-fluid">
+                </a>
+              </div>
+            </div>
+            <div class="py-2"><hr></hr></div>
+            <div class="row">
+              <div class="col-md-6">
+                <h5>Heuristic vs. Learned (overall time)</h5>
+                <a href="https://youtu.be/TODO">
+                  <img src="assets/img/timing_overall.gif" class="img-fluid">
+                </a>
+              </div>
+              <div class="col-md-6">
+                <h5>Heuristic vs. Learned (execution time)</h5>
+                <a href="https://youtu.be/TODO">
+                  <img src="assets/img/timing_execution.gif" class="img-fluid">
+                </a>
+              </div>
+            </div>
           </div>
 
           <div class="col-lg-10 offset-lg-1"><hr class="mt-4 mb-4"></div>
