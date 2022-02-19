@@ -15,9 +15,9 @@
 <p align="center">
   <a href="#installation"><b>Installation</b></a> |
   <a href="#usage"><b>Usage</b></a> |
-  <a href="#"><b>Paper</b></a> |
-  <a href="#"><b>Video</b></a> |
-  <a href="#"><b>Website</b></a>
+  <a href="https://arxiv.org/abs/TODO"><b>Paper</b></a> |
+  <a href="https://youtu.be/ahWN84sWWJU"><b>Video</b></a> |
+  <a href="https://reorientbot.wkentaro.com"><b>Website</b></a>
 </p>
 
 <div align="center">
@@ -140,7 +140,7 @@ robot-agent $ rosrun reorientbot_ros reorientbot_task_interface.py
 ## Citation
 
 ```
-@inproceedings{Wada:etal:ICRA2022,
+@inproceedings{Wada:etal:ICRA2022b,
   title={{ReorientBot}: Learning Object Reorientation for Specific-Posed Placement},
   author={Kentaro Wada and Stephen James and Andrew J. Davison},
   booktitle={IEEE International Conference on Robotics and Automation (ICRA)},
