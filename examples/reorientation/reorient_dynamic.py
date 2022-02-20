@@ -171,9 +171,10 @@ def plan_dynamic_reorient(env, grasp_poses, reorient_poses, pickable):
     else:
         indices = np.argsort(reorientable_pred)[::-1]
 
-    if _utils.get_class_id(env.fg_object_id) == 2:
-        keep = reorientable_pred[indices] > 0.3
-        indices = indices[keep]
+    if env._real:
+        if _utils.get_class_id(env.fg_object_id) == 2:
+            keep = reorientable_pred[indices] > 0.3
+            indices = indices[keep]
 
     assert (
         pickable.shape[0]
@@ -331,11 +332,15 @@ def main():
             pcd_obj = np.loadtxt(pcd_file)
             pcd_target = reorientbot.geometry.transform_points(
                 pcd_obj,
-                reorientbot.geometry.transformation_matrix(*obj_to_world_target),
+                reorientbot.geometry.transformation_matrix(
+                    *obj_to_world_target
+                ),
             )
             pcd_actual = reorientbot.geometry.transform_points(
                 pcd_obj,
-                reorientbot.geometry.transformation_matrix(*obj_to_world_actual),
+                reorientbot.geometry.transformation_matrix(
+                    *obj_to_world_actual
+                ),
             )
             auc = reorientbot.geometry.average_distance_auc(
                 pcd_target, pcd_actual, max_threshold=0.1
