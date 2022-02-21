@@ -26,7 +26,7 @@ def get_reorient_poses(env):
     else:
         bounds = (
             (0.25, -0.55, env.TABLE_OFFSET + 0.001),
-            (0.75, -0.35, env.TABLE_OFFSET + 0.001),
+            (0.75, -0.25, env.TABLE_OFFSET + 0.001),
         )
     if 0:
         pp.draw_aabb(bounds)
