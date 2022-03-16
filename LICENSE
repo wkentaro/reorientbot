@@ -218,9 +218,12 @@ SCHEDULE 1
 
 The Software
 
-MoreFusion is an object-level reconstruction system that builds a map with known-shaped objects,
-exploiting volumetric reconstruction of detected objects in a real-time, incremental scene
-reconstruction senario. It is based on the techniques described in the following publication:
+ReorientBot is a robotic manipulation system that can place objects in specific
+poses via efficient motions to change the orientation of objects for
+regrasping. It combines learning-based approach and symbolic motion planning
+for real-time motion generation and flexible generalization to diverse
+placement configurations. It is based on the techniques described in the
+following publication:
 
     • Kentaro Wada, Stephen James, Andrew J. Davison.
 ReorientBot: Learning Object Reorientation for Specific-Posed Placement,
